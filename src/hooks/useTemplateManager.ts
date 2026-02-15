@@ -16,9 +16,20 @@ function extractToolParts(parts: UIMessage['parts']): ToolPartInfo[] {
   const result: ToolPartInfo[] = [];
   for (const part of parts) {
     const p = part as Record<string, unknown>;
-    if (p.type === 'dynamic-tool' || (typeof p.type === 'string' && p.type.startsWith('tool-'))) {
+    const type = p.type as string;
+
+    if (type === 'dynamic-tool') {
+      // DynamicToolUIPart: has toolName property
       result.push({
         toolName: (p.toolName ?? '') as string,
+        state: (p.state ?? '') as string,
+        output: p.output,
+      });
+    } else if (typeof type === 'string' && type.startsWith('tool-')) {
+      // ToolUIPart: type is 'tool-{toolName}', no toolName property
+      const toolName = type.slice(5); // 'tool-renderTemplate' → 'renderTemplate'
+      result.push({
+        toolName,
         state: (p.state ?? '') as string,
         output: p.output,
       });
