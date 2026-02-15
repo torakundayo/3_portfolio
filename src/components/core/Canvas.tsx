@@ -45,6 +45,7 @@ export function Canvas() {
   const config = transitionConfig[transitionType];
 
   const isLoading = chat.status === 'submitted' || chat.status === 'streaming';
+  const hasError = chat.status === 'error' || !!chat.error;
 
   return (
     <>
@@ -73,6 +74,21 @@ export function Canvas() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {hasError && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm shadow-lg"
+          >
+            <p className="font-medium">エラーが発生しました</p>
+            <p className="mt-1 text-red-600/80 text-xs">
+              {chat.error?.message || 'しばらく待ってからもう一度お試しください'}
+            </p>
+          </motion.div>
+        </div>
+      )}
 
       <FloatingInput
         position={inputConfig.position}

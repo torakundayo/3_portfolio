@@ -7,7 +7,7 @@
         "en": "Golf Competition Ranking Real-time Simulator"
       },
       "description": {
-        "ja": "ペオリア方式のゴルフコンペで、係数スライダーを動かすと順位がリアルタイムに変動する。スマホ完結のPWA。オフライン動作可能。",
+        "ja": "新ペリア方式のゴルフコンペで、係数スライダーを動かすと順位がリアルタイムに変動する。スマホ完結のPWA。オフライン動作可能。",
         "en": "Real-time ranking simulator for Peoria-method golf competitions. Slide coefficients to see rankings change instantly. Mobile-first PWA with offline support."
       },
       "stack": ["React 19", "TypeScript", "Vite 7", "PWA"],

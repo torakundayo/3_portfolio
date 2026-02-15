@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       messages: modelMessages,
       tools,
       stopWhen: stepCountIs(3),
+      maxRetries: 0,
     });
 
     return result.toUIMessageStreamResponse();
