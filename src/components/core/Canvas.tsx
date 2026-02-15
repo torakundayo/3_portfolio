@@ -9,6 +9,7 @@ import { templateRegistry } from '@/components/templates/registry';
 import { transitionVariants, transitionConfig } from '@/lib/transitions';
 import { FloatingInput } from './FloatingInput';
 import { LoadingOverlay } from './LoadingOverlay';
+import { StaticFallback } from '@/components/templates/StaticFallback';
 import { WelcomeMinimalInput } from '@/components/templates/welcome/MinimalInput';
 import { generateVisualSeed } from '@/lib/visual-seed';
 
@@ -47,52 +48,54 @@ export function Canvas() {
   const isLoading = chat.status === 'submitted' || chat.status === 'streaming';
   const hasError = chat.status === 'error' || !!chat.error;
 
+  // Show static fallback when API errors on first interaction (no successful response yet)
+  const hasSuccessfulResponse = chat.messages.some(m => m.role === 'assistant');
+  const showStaticFallback = hasError && !hasSuccessfulResponse;
+
   return (
     <>
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`${templateId}-${visualSeed.accentIndex}`}
-          variants={variants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={config}
-          className="absolute inset-0"
-        >
-          {TemplateComponent ? (
-            <TemplateComponent
-              data={templateData}
-              commentary={commentary}
-              visualSeed={visualSeed}
-            />
-          ) : (
-            <WelcomeMinimalInput
-              data={null}
-              commentary=""
-              visualSeed={generateVisualSeed()}
-            />
-          )}
-        </motion.div>
+        {showStaticFallback ? (
+          <motion.div
+            key="static-fallback"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0"
+          >
+            <StaticFallback />
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`${templateId}-${visualSeed.accentIndex}`}
+            variants={variants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={config}
+            className="absolute inset-0"
+          >
+            {TemplateComponent ? (
+              <TemplateComponent
+                data={templateData}
+                commentary={commentary}
+                visualSeed={visualSeed}
+              />
+            ) : (
+              <WelcomeMinimalInput
+                data={null}
+                commentary=""
+                visualSeed={generateVisualSeed()}
+              />
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
 
-      {hasError && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 max-w-md">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm shadow-lg"
-          >
-            <p className="font-medium">エラーが発生しました</p>
-            <p className="mt-1 text-red-600/80 text-xs">
-              {chat.error?.message || 'しばらく待ってからもう一度お試しください'}
-            </p>
-          </motion.div>
-        </div>
-      )}
-
       <FloatingInput
-        position={inputConfig.position}
-        style={inputConfig.style}
+        position={showStaticFallback ? 'bottom-center' : inputConfig.position}
+        style={showStaticFallback ? 'dark-glass' : inputConfig.style}
         sendMessage={chat.sendMessage}
         isLoading={isLoading}
       />
