@@ -1,12 +1,11 @@
 import { google } from '@ai-sdk/google';
-import { streamText, stepCountIs } from 'ai';
+import { streamText, stepCountIs, convertToModelMessages } from 'ai';
 import { tools } from '@/lib/ai/tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 20; // requests per window
 const RATE_WINDOW = 60_000; // 1 minute
-const MAX_MESSAGE_LENGTH = 500;
 const MAX_MESSAGES = 30;
 
 function getRateLimitKey(req: Request): string {
@@ -57,19 +56,17 @@ export async function POST(req: Request) {
     );
   }
 
-  // Truncate to prevent abuse
-  const trimmedMessages = messages.slice(-MAX_MESSAGES).map((m: any) => {
-    if (m.role === 'user' && typeof m.content === 'string' && m.content.length > MAX_MESSAGE_LENGTH) {
-      return { ...m, content: m.content.slice(0, MAX_MESSAGE_LENGTH) };
-    }
-    return m;
-  });
+  // Limit message count
+  const trimmedMessages = messages.slice(-MAX_MESSAGES);
 
   try {
+    // Convert UIMessage[] (parts-based) to ModelMessage[] (content-based)
+    const modelMessages = await convertToModelMessages(trimmedMessages as any, { tools });
+
     const result = streamText({
       model: google('gemini-2.5-flash'),
       system: buildSystemPrompt(usedTemplates),
-      messages: trimmedMessages,
+      messages: modelMessages,
       tools,
       stopWhen: stepCountIs(3),
     });
