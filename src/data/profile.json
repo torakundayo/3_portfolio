@@ -1,0 +1,26 @@
+{
+  "name": {
+    "ja": "（あなたの名前）",
+    "en": "Your Name"
+  },
+  "title": {
+    "ja": "フルスタックエンジニア",
+    "en": "Full-Stack Engineer"
+  },
+  "location": {
+    "ja": "東京都",
+    "en": "Tokyo, Japan"
+  },
+  "introduction": {
+    "ja": "ここに自己紹介文を自由に、長文で、雑多に書く。AIが必要な部分を拾ってくれるので、構造化を気にせず思いのままに書いてよい。経歴の要約、得意なこと、性格、趣味、何でも。",
+    "en": "Write your self-introduction freely here. The AI will pick out relevant parts as needed, so feel free to write anything — summary of your career, strengths, personality, hobbies, etc."
+  },
+  "background": {
+    "ja": "追加の背景情報。学歴、転職の動機、今後やりたいこと、etc...",
+    "en": "Additional background. Education, career motivations, future goals, etc..."
+  },
+  "links": {
+    "github": "https://github.com/yourname",
+    "linkedin": "https://linkedin.com/in/yourname"
+  }
+}

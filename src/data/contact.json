@@ -1,0 +1,9 @@
+{
+  "email": "your@email.com",
+  "github": "https://github.com/yourname",
+  "linkedin": "https://linkedin.com/in/yourname",
+  "message": {
+    "ja": "お気軽にご連絡ください。",
+    "en": "Feel free to reach out."
+  }
+}

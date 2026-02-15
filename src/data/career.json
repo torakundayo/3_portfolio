@@ -1,0 +1,23 @@
+{
+  "history": [
+    {
+      "company": {
+        "ja": "株式会社○○",
+        "en": "Company Name Inc."
+      },
+      "period": "2022-04 ~ present",
+      "role": {
+        "ja": "フロントエンドエンジニア",
+        "en": "Frontend Engineer"
+      },
+      "description": {
+        "ja": "ここも雑多に長文で書いてよい。担当したプロジェクト、使った技術、チーム規模、成果、苦労した点、学んだこと、etc... AIが必要な部分を文脈に応じて拾う。",
+        "en": "Write freely here too. Projects, technologies, team size, achievements, challenges, learnings, etc."
+      },
+      "highlights": {
+        "ja": ["成果1", "成果2", "成果3"],
+        "en": ["Achievement 1", "Achievement 2", "Achievement 3"]
+      }
+    }
+  ]
+}

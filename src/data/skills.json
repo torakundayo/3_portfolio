@@ -1,0 +1,91 @@
+{
+  "categories": [
+    {
+      "name": {
+        "ja": "フロントエンド",
+        "en": "Frontend"
+      },
+      "skills": [
+        {
+          "name": "React",
+          "level": 4,
+          "yearsOfExperience": 3,
+          "details": {
+            "ja": "React 18/19、Hooks、Context、Server Components。PeoriaSliderとkeibaで使用。",
+            "en": "React 18/19, Hooks, Context, Server Components. Used in PeoriaSlider and keiba."
+          }
+        },
+        {
+          "name": "TypeScript",
+          "level": 5,
+          "yearsOfExperience": 3,
+          "details": {
+            "ja": "Strict mode。全プロジェクトで使用。型設計が得意。",
+            "en": "Strict mode. Used across all projects. Strong in type design."
+          }
+        },
+        {
+          "name": "Next.js",
+          "level": 4,
+          "yearsOfExperience": 2,
+          "details": {
+            "ja": "App Router、API Routes、ISR。keibaとportfolioで使用。",
+            "en": "App Router, API Routes, ISR. Used in keiba and portfolio."
+          }
+        },
+        {
+          "name": "Tailwind CSS",
+          "level": 4,
+          "yearsOfExperience": 2,
+          "details": {
+            "ja": "ユーティリティファースト。レスポンシブデザイン。",
+            "en": "Utility-first. Responsive design."
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "ja": "バックエンド",
+        "en": "Backend"
+      },
+      "skills": [
+        {
+          "name": "Node.js",
+          "level": 3,
+          "yearsOfExperience": 2,
+          "details": {
+            "ja": "API開発、スクレイピング。",
+            "en": "API development, scraping."
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "ja": "AI / LLM",
+        "en": "AI / LLM"
+      },
+      "skills": [
+        {
+          "name": "Vercel AI SDK",
+          "level": 3,
+          "yearsOfExperience": 1,
+          "details": {
+            "ja": "ストリーミング、Function Calling、ツール統合。",
+            "en": "Streaming, Function Calling, tool integration."
+          }
+        },
+        {
+          "name": "Gemini API",
+          "level": 3,
+          "yearsOfExperience": 1,
+          "details": {
+            "ja": "Gemini 2.5 Flash。コスト最適化。",
+            "en": "Gemini 2.5 Flash. Cost optimization."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "beliefs": {
+    "ja": "ここは完全に自由記述。あなたの仕事に対する考え方、技術に対する哲学、チームで働く際に大事にしていること、プロダクト開発への思い、将来のビジョンを思いのままに書く。構造化不要。AIが質問に応じて必要な部分を引用する。",
+    "en": "Write freely here. Your work philosophy, technical beliefs, team values, product development thoughts, future vision. No structure needed. The AI will pick relevant parts based on questions."
+  },
+  "visionForFutureSaaS": {
+    "ja": "現在のWebサービスはユーザーが目的に応じてページに移動し機能を使う方式だが、次世代SaaSはトップページ1枚にAIを置き、ユーザーの自然言語入力に対してAIがDB操作からUI生成まで一貫して行う形になる。このポートフォリオサイト自体がその概念実証である。",
+    "en": "Current web services require users to navigate pages for different functions. Next-gen SaaS will place AI on a single page, where the AI handles everything from DB operations to UI generation based on natural language input. This portfolio site itself is a proof of concept."
+  },
+  "workStyle": {
+    "ja": "ここに働き方の好み、大事にしていることを書く。",
+    "en": "Write your work style preferences and values here."
+  }
+}

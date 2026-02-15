@@ -1,0 +1,52 @@
+{
+  "projects": [
+    {
+      "name": "PeoriaSlider",
+      "tagline": {
+        "ja": "ゴルフコンペ順位リアルタイムシミュレーター",
+        "en": "Golf Competition Ranking Real-time Simulator"
+      },
+      "description": {
+        "ja": "ペオリア方式のゴルフコンペで、係数スライダーを動かすと順位がリアルタイムに変動する。スマホ完結のPWA。オフライン動作可能。",
+        "en": "Real-time ranking simulator for Peoria-method golf competitions. Slide coefficients to see rankings change instantly. Mobile-first PWA with offline support."
+      },
+      "stack": ["React 19", "TypeScript", "Vite 7", "PWA"],
+      "url": "https://peoria-slider.pages.dev/",
+      "github": "https://github.com/torakundayo/1_PeoriaSlider",
+      "image": "/images/projects/peoria-slider.png",
+      "year": 2026
+    },
+    {
+      "name": "keiba",
+      "tagline": {
+        "ja": "3連複の確率構造分析ツール",
+        "en": "Trifecta Probability Structure Analysis Tool"
+      },
+      "description": {
+        "ja": "単勝×複勝の2データソースで確率を推定。構造的に75%を超えられない理由を教育的に解説。774レースのバックテスト搭載。",
+        "en": "Probability estimation using win/place data. Educational explanation of why 75% return rate is structurally impossible to beat. 774-race backtest included."
+      },
+      "stack": ["Next.js 14", "TypeScript", "TanStack Query", "Tailwind CSS", "KaTeX", "Cheerio"],
+      "url": "https://keiba-six.vercel.app/",
+      "github": "https://github.com/torakundayo/2_keiba",
+      "image": "/images/projects/keiba.png",
+      "year": 2026
+    },
+    {
+      "name": "Portfolio (This Site)",
+      "tagline": {
+        "ja": "AIキャンバス方式ポートフォリオ",
+        "en": "AI Canvas Portfolio"
+      },
+      "description": {
+        "ja": "AIチャットボットファーストのポートフォリオサイト。トップページ1枚＋AI対話のみで構成。ページ遷移なし。入力に応じてデザインが動的に変化する次世代UI/UXの概念実証。",
+        "en": "AI chatbot-first portfolio. Single page + AI dialogue only. No page navigation. Design dynamically transforms based on input. Proof of concept for next-gen UI/UX."
+      },
+      "stack": ["Next.js 15", "Vercel AI SDK", "Gemini 2.5 Flash", "Framer Motion", "Tailwind CSS"],
+      "url": "",
+      "github": "",
+      "image": "/images/projects/portfolio.png",
+      "year": 2026
+    }
+  ]
+}
