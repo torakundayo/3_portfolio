@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
   try {
     const result = streamText({
-      model: google('gemini-2.5-flash-preview-05-20'),
+      model: google('gemini-2.5-flash'),
       system: buildSystemPrompt(usedTemplates),
       messages: trimmedMessages,
       tools,
