@@ -69,10 +69,19 @@ export function useTemplateManager(messages: UIMessage[]) {
         : dataParts.reduce((acc, p) => ({ ...acc, ...(p.output as object) }), {})
       : null;
 
+    const commentary = textParts.join('');
+
+    // Determine template: explicit tool call > fallback for text-only > welcome
+    let resolvedTemplateId = (templatePart?.output as string) ?? null;
+    if (!resolvedTemplateId && commentary) {
+      // Gemini returned text but didn't call renderTemplate — use text template
+      resolvedTemplateId = 'text-centered-prose';
+    }
+
     return {
-      templateId: (templatePart?.output as string) ?? 'welcome',
+      templateId: resolvedTemplateId ?? 'welcome',
       templateData: mergedData,
-      commentary: textParts.join(''),
+      commentary,
     };
   }, [messages]);
 
