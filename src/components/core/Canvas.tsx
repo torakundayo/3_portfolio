@@ -93,12 +93,14 @@ export function Canvas() {
         )}
       </AnimatePresence>
 
-      <FloatingInput
-        position={showStaticFallback ? 'bottom-center' : inputConfig.position}
-        style={showStaticFallback ? 'dark-glass' : inputConfig.style}
-        sendMessage={chat.sendMessage}
-        isLoading={isLoading}
-      />
+      {!showStaticFallback && (
+        <FloatingInput
+          position={inputConfig.position}
+          style={inputConfig.style}
+          sendMessage={chat.sendMessage}
+          isLoading={isLoading}
+        />
+      )}
 
       {isLoading && <LoadingOverlay />}
     </>
