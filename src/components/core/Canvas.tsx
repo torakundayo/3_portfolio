@@ -15,6 +15,7 @@ import { generateVisualSeed } from '@/lib/visual-seed';
 
 export function Canvas() {
   const [usedTemplates, setUsedTemplates] = useState<string[]>([]);
+  const [forceStatic, setForceStatic] = useState(false);
 
   // Use ref so the transport's body always reads the latest usedTemplates
   // without recreating the transport (useChat ignores transport changes)
@@ -45,6 +46,13 @@ export function Canvas() {
     }
   }, [templateId]);
 
+  // ?static param forces StaticFallback for testing
+  useEffect(() => {
+    setForceStatic(
+      new URLSearchParams(window.location.search).has('static')
+    );
+  }, []);
+
   const entry = templateRegistry[templateId];
   const TemplateComponent = entry?.component;
   const transitionType = entry?.meta.transition ?? 'scaleBlur';
@@ -59,7 +67,10 @@ export function Canvas() {
   const hasSuccessfulResponse = chat.messages.some(
     m => m.role === 'assistant' && m.parts.length > 0
   );
-  const showStaticFallback = hasError && !hasSuccessfulResponse;
+  const showStaticFallback = forceStatic || (hasError && !hasSuccessfulResponse);
+
+  // Input is visible when not loading and not in static fallback
+  const showInput = !isLoading && !showStaticFallback;
 
   return (
     <>
@@ -102,16 +113,33 @@ export function Canvas() {
         )}
       </AnimatePresence>
 
-      {!showStaticFallback && (
-        <FloatingInput
-          position={inputConfig.position}
-          style={inputConfig.style}
-          sendMessage={chat.sendMessage}
-          isLoading={isLoading}
-        />
-      )}
+      {/* Input dissolves out on send, materializes back after response */}
+      <AnimatePresence>
+        {showInput && (
+          <motion.div
+            key="input-wrapper"
+            className="absolute inset-0 z-50 pointer-events-none"
+            initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: 24, scale: 0.92, filter: 'blur(10px)' }}
+            transition={{
+              duration: 0.5,
+              ease: [0.22, 1, 0.36, 1] as const,
+            }}
+          >
+            <FloatingInput
+              position={inputConfig.position}
+              style={inputConfig.style}
+              sendMessage={chat.sendMessage}
+              isLoading={isLoading}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {isLoading && <LoadingOverlay />}
+      <AnimatePresence>
+        {isLoading && <LoadingOverlay />}
+      </AnimatePresence>
     </>
   );
 }

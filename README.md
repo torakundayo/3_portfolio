@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Canvas Portfolio
 
-## Getting Started
+AIが動的にUIを生成するポートフォリオサイト。従来の「ページ遷移型」を排除し、トップページ1枚 + AIチャットのみで構成。ユーザーの入力に応じてAIがテンプレートを選択し、コンテンツを動的に表示する。
 
-First, run the development server:
+## コンセプト
+
+- **AIキャンバス方式**: 入力欄に何でも入力すると、白紙のキャンバスがリッチなデザインに変身
+- **二度と同じ体験に出会えない**: テンプレート × ビジュアルランダム化 × AI応答変化 = 無限の組み合わせ
+- **このサイト自体がポートフォリオ**: 次世代SaaS UI/UXの概念実証
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | Next.js 16 (App Router, Turbopack) |
+| 言語 | TypeScript (strict) |
+| スタイリング | Tailwind CSS v4 |
+| AI | Vercel AI SDK + Google Gemini 2.5 Flash |
+| アニメーション | Framer Motion 12 + CSS @keyframes |
+| マークダウン | react-markdown + remark-gfm |
+| デプロイ | Vercel |
+
+## セットアップ
+
+```bash
+npm install
+```
+
+`.env.local` を作成:
+
+```
+GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
+```
+
+## 開発
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 で確認。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## StaticFallback
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+API接続エラー時やオフライン環境では、空間配置型のStaticFallbackが表示される。
 
-## Learn More
+- 太陽系的な軌道配置でプロフィール情報を空間的に展示
+- ホバーでノードが展開、クリックでズームイン詳細表示
+- パララックス、パーティクル、ニューラルラインによる没入感
 
-To learn more about Next.js, take a look at the following resources:
+## ドキュメント
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [PLAN.md](PLAN.md) — 実装計画書
+- [docs/design-principles.md](docs/design-principles.md) — デザイン原則・実装ガイドライン

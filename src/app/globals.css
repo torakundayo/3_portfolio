@@ -9,7 +9,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #171717;
 }
 
 @layer base {
@@ -64,6 +64,26 @@
     outline: 2px solid rgba(99, 102, 241, 0.5);
     outline-offset: 2px;
   }
+}
+
+/* Animated glow angle for FloatingInput border */
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* AI-like organic pulse — compositor thread, no JS overhead */
+@keyframes ai-breathe {
+  0%, 100% { opacity: 0.55; transform: translateY(0); }
+  30% { opacity: 0.95; transform: translateY(-1px); }
+  70% { opacity: 0.65; transform: translateY(0.5px); }
+}
+
+/* Staggered content reveal — feels like AI is generating */
+@keyframes ai-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Prose overrides for ReactMarkdown */
