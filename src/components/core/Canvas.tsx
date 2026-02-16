@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,12 +16,18 @@ import { generateVisualSeed } from '@/lib/visual-seed';
 export function Canvas() {
   const [usedTemplates, setUsedTemplates] = useState<string[]>([]);
 
+  // Use ref so the transport's body always reads the latest usedTemplates
+  // without recreating the transport (useChat ignores transport changes)
+  const usedTemplatesRef = useRef(usedTemplates);
+  usedTemplatesRef.current = usedTemplates;
+
   const transport = useMemo(
     () => new DefaultChatTransport({
       api: '/api/chat',
-      body: { usedTemplates },
+      body: () => ({ usedTemplates: usedTemplatesRef.current }),
     }),
-    [usedTemplates]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   const chat = useChat({ transport });
@@ -49,7 +55,10 @@ export function Canvas() {
   const hasError = chat.status === 'error' || !!chat.error;
 
   // Show static fallback when API errors on first interaction (no successful response yet)
-  const hasSuccessfulResponse = chat.messages.some(m => m.role === 'assistant');
+  // Check for parts.length > 0 to exclude empty assistant messages left by stream errors
+  const hasSuccessfulResponse = chat.messages.some(
+    m => m.role === 'assistant' && m.parts.length > 0
+  );
   const showStaticFallback = hasError && !hasSuccessfulResponse;
 
   return (
