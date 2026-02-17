@@ -42,7 +42,7 @@ export const templateRegistry: Record<string, TemplateEntry> = {
   // ─── Welcome ───
   'welcome': {
     component: WelcomeMinimalInput,
-    meta: { id: 'welcome', category: 'welcome', inputPosition: 'center', inputStyle: 'minimal', transition: 'scaleBlur' },
+    meta: { id: 'welcome', category: 'welcome', inputPosition: 'center', inputStyle: 'dark-glass', transition: 'scaleBlur' },
   },
 
   // ─── Profile (5) ───

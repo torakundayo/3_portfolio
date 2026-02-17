@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -17,44 +18,46 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
   const remaining = lines.slice(1).join('\n');
 
   return (
-    <div className="h-full w-full overflow-auto flex flex-col items-center justify-center">
-      {/* Soft bg */}
-      <motion.div
-        className="fixed inset-0 -z-10"
-        animate={{
-          background: [
-            `linear-gradient(${gradientAngle}deg, ${palette.primary}06, white 40%, white 60%, ${palette.secondary}04)`,
-            `linear-gradient(${gradientAngle + 30}deg, ${palette.secondary}06, white 40%, white 60%, ${palette.primary}04)`,
-            `linear-gradient(${gradientAngle}deg, ${palette.primary}06, white 40%, white 60%, ${palette.secondary}04)`,
-          ],
-        }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
-      />
+    <div className="h-full w-full overflow-hidden flex flex-col items-center justify-center bg-gray-950 relative">
+      {/* CSS keyframe bg blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1a`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 20s ease-in-out infinite' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}12`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 24s ease-in-out infinite' }} />
+      </div>
 
-      <div className="max-w-3xl w-full px-6 py-16">
-        {/* Highlight box */}
+      <div className="max-w-3xl w-full px-6 py-10 relative z-10">
+        {/* Highlight box with organic radius */}
         {highlight && (
           <motion.div
-            className="relative mb-12 rounded-2xl p-10 md:p-14 text-center overflow-hidden"
+            className="relative mb-8 p-8 md:p-12 text-center overflow-hidden"
             style={{
-              background: `linear-gradient(${gradientAngle}deg, ${palette.primary}10, ${palette.secondary}08)`,
+              borderRadius: organicRadius,
+              background: `linear-gradient(${gradientAngle}deg, ${palette.primary}18, ${palette.secondary}10)`,
             }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
+            transition={{ ...SPRING_ENTER, delay: baseDelay }}
           >
             {/* Decorative glow */}
             <div
               className="absolute inset-0 -z-10 opacity-40"
               style={{
                 background: `radial-gradient(ellipse at 50% 0%, ${palette.glow}20 0%, transparent 60%)`,
+                transform: 'translateZ(-20px)',
               }}
             />
 
             {/* Large quote mark */}
             <motion.div
               className="text-7xl font-serif leading-none mb-4 select-none"
-              style={{ color: `${palette.primary}25` }}
+              style={{
+                color: `${palette.primary}35`,
+                transform: 'translateZ(-20px)',
+              }}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: baseDelay + 0.2, duration: 0.6 }}
@@ -65,22 +68,27 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
             {/* Highlight text */}
             <motion.p
               className="text-2xl md:text-3xl lg:text-4xl font-bold leading-snug"
-              style={{ color: palette.primary }}
+              style={{
+                color: palette.primary,
+                ...breatheStyle(0),
+                transform: 'translateZ(30px)',
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: baseDelay + 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.3 }}
             >
               {highlight}
             </motion.p>
 
             {/* Bottom accent */}
             <motion.div
-              className="mx-auto mt-8"
+              className="mx-auto mt-6"
               style={{
                 width: '60px',
                 height: '3px',
                 borderRadius: '2px',
                 background: `linear-gradient(to right, ${palette.primary}, ${palette.secondary})`,
+                transform: 'translateZ(-20px)',
               }}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -92,12 +100,52 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
         {/* Remaining text */}
         {remaining && (
           <motion.div
-            className="prose prose-lg prose-gray max-w-none leading-relaxed"
+            className="prose prose-lg prose-invert max-w-none leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: baseDelay + 0.6 }}
+            transition={{ ...SPRING_ENTER, delay: baseDelay + 0.6 }}
+            style={{ transform: 'translateZ(15px)' }}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{remaining}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ children }) => (
+                  <p className="text-gray-300" style={revealStyle(0)}>
+                    {children}
+                  </p>
+                ),
+                h1: ({ children }) => (
+                  <h1
+                    className="text-gray-100"
+                    style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
+                  >
+                    {children}
+                  </h1>
+                ),
+                h2: ({ children }) => (
+                  <h2
+                    className="text-gray-100"
+                    style={{ ...breatheStyle(1), transform: 'translateZ(40px)' }}
+                  >
+                    {children}
+                  </h2>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote
+                    className="border-l-2 pl-4 italic text-gray-400"
+                    style={{
+                      ...breatheStyle(1),
+                      transform: 'translateZ(30px)',
+                      borderColor: palette.primary,
+                    }}
+                  >
+                    {children}
+                  </blockquote>
+                ),
+              }}
+            >
+              {remaining}
+            </ReactMarkdown>
           </motion.div>
         )}
       </div>

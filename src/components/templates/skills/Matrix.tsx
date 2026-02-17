@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 /**
  * Terminal-aesthetic dot/cell matrix grid.
@@ -19,16 +20,25 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
 
-  // Find which category a skill belongs to
-  const skillWithCategory = categories.flatMap((c: any) =>
-    (c.skills ?? []).map((s: any) => ({
-      ...s,
-      categoryName: c.name?.ja ?? c.name?.en ?? '',
-    }))
-  );
+  // Limit displayed skills to fit in 1 viewport
+  const MAX_SKILLS = 20;
+  const limitedCategories = (() => {
+    let count = 0;
+    return categories.map((c: any) => {
+      const skills = c.skills ?? [];
+      const remaining = MAX_SKILLS - count;
+      if (remaining <= 0) return { ...c, skills: [] };
+      const limited = skills.slice(0, remaining);
+      count += limited.length;
+      return { ...c, skills: limited };
+    }).filter((c: any) => c.skills.length > 0);
+  })();
+
+  // Global skill index for revealStyle
+  let globalIdx = 0;
 
   return (
-    <div className="h-full w-full overflow-auto bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-gray-950">
       {/* CRT-like scanline overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-20 opacity-[0.03]"
@@ -38,40 +48,43 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
         }}
       />
 
-      {/* Subtle ambient glow */}
-      <div
-        className="pointer-events-none fixed inset-0 -z-0"
-        style={{
-          background: `radial-gradient(ellipse 50% 40% at 50% 40%, ${palette.primary}08, transparent)`,
-        }}
-      />
+      {/* CSS keyframe background blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1f`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-10 sm:px-8 lg:py-14">
+      <div className="relative z-10 mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:py-8 h-full flex flex-col">
         {/* Terminal header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: baseDelay }}
-          className="mb-8"
+          className="flex-1 min-h-0 flex flex-col"
         >
           {/* Terminal title bar */}
-          <div className="flex items-center gap-2 rounded-t-lg border border-white/10 bg-white/5 px-4 py-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
-            <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
-            <span className="ml-3 font-mono text-xs text-gray-500">
+          <div className="flex items-center gap-2 rounded-t-lg border border-white/10 bg-white/5 px-4 py-1.5">
+            <div className="h-2 w-2 rounded-full bg-red-500/70" />
+            <div className="h-2 w-2 rounded-full bg-yellow-500/70" />
+            <div className="h-2 w-2 rounded-full bg-green-500/70" />
+            <span className="ml-3 font-mono text-[10px] text-gray-500">
               skills --matrix --format=visual
             </span>
           </div>
 
           {/* Terminal body */}
-          <div className="rounded-b-lg border border-t-0 border-white/10 bg-black/40 p-4 sm:p-6 backdrop-blur-sm">
+          <div className="flex-1 min-h-0 flex flex-col rounded-b-lg border border-t-0 border-white/10 bg-black/40 p-3 sm:p-4 backdrop-blur-sm">
             {/* Header line */}
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: baseDelay + 0.2, duration: 0.5 }}
-              className="mb-2 font-mono text-xs"
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
+              className="mb-1 font-mono text-[10px]"
+              style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
             >
               <span style={{ color: palette.glow }}>$</span>
               <span className="text-gray-500"> loading skill matrix...</span>
@@ -80,9 +93,9 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.4, duration: 0.3 }}
-              className="mb-6 font-mono text-xs text-gray-600"
+              className="mb-3 font-mono text-[10px] text-gray-600"
             >
-              ── {allSkills.length} skills across {categories.length} categories ──
+              -- {allSkills.length} skills across {categories.length} categories --
             </motion.div>
 
             {/* Matrix Header Row */}
@@ -90,24 +103,24 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.5, duration: 0.3 }}
-              className={`mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-gray-600 ${mirror ? 'flex-row-reverse' : ''}`}
+              className={`mb-1.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-gray-600 ${mirror ? 'flex-row-reverse' : ''}`}
             >
-              <span className={`${mirror ? 'text-right' : 'text-left'} w-32 shrink-0 sm:w-40`}>
+              <span className={`${mirror ? 'text-right' : 'text-left'} w-28 shrink-0 sm:w-36`}>
                 SKILL
               </span>
-              <div className="flex flex-1 items-center gap-1">
+              <div className="flex flex-1 items-center gap-0.5">
                 {['L1', 'L2', 'L3', 'L4', 'L5'].map((label) => (
-                  <span key={label} className="w-8 text-center sm:w-10">
+                  <span key={label} className="w-6 text-center sm:w-8">
                     {label}
                   </span>
                 ))}
               </div>
-              <span className="w-12 text-center">YRS</span>
+              <span className="w-10 text-center">YRS</span>
             </motion.div>
 
             {/* Separator */}
             <motion.div
-              className="mb-3 h-px"
+              className="mb-2 h-px"
               style={{
                 background: `linear-gradient(90deg, ${palette.primary}30, ${palette.primary}10, transparent)`,
               }}
@@ -116,122 +129,127 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
               transition={{ delay: baseDelay + 0.55, duration: 0.6 }}
             />
 
-            {/* Matrix rows grouped by category */}
-            {categories.map((category: any, catIdx: number) => {
-              const catDelay = baseDelay + 0.6 + catIdx * 0.1;
-              const skills = category.skills ?? [];
+            {/* Matrix rows grouped by category - reduced row height */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {limitedCategories.map((category: any, catIdx: number) => {
+                const catDelay = baseDelay + 0.6 + catIdx * 0.1;
+                const skills = category.skills ?? [];
 
-              return (
-                <div key={catIdx} className="mb-4 last:mb-0">
-                  {/* Category label */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: catDelay, duration: 0.3 }}
-                    className={`mb-2 font-mono text-[10px] font-bold uppercase tracking-widest ${mirror ? 'text-right' : 'text-left'}`}
-                    style={{ color: palette.glow + '80' }}
-                  >
-                    /* {category.name?.en ?? category.name?.ja ?? ''} */
-                  </motion.div>
+                return (
+                  <div key={catIdx} className="mb-2 last:mb-0">
+                    {/* Category label */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: catDelay, duration: 0.3 }}
+                      className={`mb-1 font-mono text-[9px] font-bold uppercase tracking-widest ${mirror ? 'text-right' : 'text-left'}`}
+                      style={{ color: palette.glow + '80' }}
+                    >
+                      /* {category.name?.en ?? category.name?.ja ?? ''} */
+                    </motion.div>
 
-                  {/* Skill rows */}
-                  {skills.map((skill: any, skillIdx: number) => {
-                    const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
-                    const rowDelay = catDelay + 0.05 + skillIdx * 0.06;
+                    {/* Skill rows - compact */}
+                    {skills.map((skill: any, skillIdx: number) => {
+                      const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
+                      const rowDelay = catDelay + 0.05 + skillIdx * 0.06;
+                      const currentIdx = globalIdx++;
 
-                    return (
-                      <motion.div
-                        key={skillIdx}
-                        initial={{ opacity: 0, x: mirror ? 15 : -15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: rowDelay, duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
-                        className={`group mb-1 flex items-center gap-2 rounded-sm px-1 py-1 font-mono transition-colors hover:bg-white/[0.03] ${mirror ? 'flex-row-reverse' : ''}`}
-                      >
-                        {/* Skill name */}
-                        <span
-                          className={`w-32 shrink-0 truncate text-xs text-gray-400 transition-colors group-hover:text-gray-200 sm:w-40 ${mirror ? 'text-right' : 'text-left'}`}
+                      return (
+                        <motion.div
+                          key={skillIdx}
+                          initial={{ opacity: 0, x: mirror ? 15 : -15 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ ...SPRING_ENTER, delay: rowDelay }}
+                          className={`group mb-0.5 flex items-center gap-1.5 rounded-sm px-1 py-0.5 font-mono transition-colors hover:bg-white/[0.03] ${mirror ? 'flex-row-reverse' : ''}`}
+                          style={{ ...revealStyle(currentIdx), transform: 'translateZ(15px)' }}
                         >
-                          {skill.name}
-                        </span>
+                          {/* Skill name */}
+                          <span
+                            className={`w-28 shrink-0 truncate text-[11px] text-gray-400 transition-colors group-hover:text-gray-200 sm:w-36 ${mirror ? 'text-right' : 'text-left'}`}
+                          >
+                            {skill.name}
+                          </span>
 
-                        {/* Level cells */}
-                        <div className="flex flex-1 items-center gap-1">
-                          {Array.from({ length: 5 }, (_, cellIdx) => {
-                            const isActive = cellIdx < level;
-                            const cellDelay = rowDelay + 0.15 + cellIdx * 0.04;
-                            const intensity = isActive
-                              ? 0.4 + (cellIdx / 4) * 0.6
-                              : 0;
+                          {/* Level cells - reduced size */}
+                          <div className="flex flex-1 items-center gap-0.5">
+                            {Array.from({ length: 5 }, (_, cellIdx) => {
+                              const isActive = cellIdx < level;
+                              const cellDelay = rowDelay + 0.15 + cellIdx * 0.04;
+                              const intensity = isActive
+                                ? 0.4 + (cellIdx / 4) * 0.6
+                                : 0;
 
-                            return (
-                              <motion.div
-                                key={cellIdx}
-                                className="flex h-6 w-8 items-center justify-center rounded-sm sm:h-7 sm:w-10"
-                                style={{
-                                  backgroundColor: isActive
-                                    ? `${palette.primary}${Math.round(intensity * 40).toString(16).padStart(2, '0')}`
-                                    : 'rgba(255,255,255,0.03)',
-                                  border: `1px solid ${isActive ? palette.primary + '30' : 'rgba(255,255,255,0.05)'}`,
-                                  boxShadow: isActive
-                                    ? `0 0 ${cellIdx * 4 + 4}px ${palette.glow}${Math.round(intensity * 30).toString(16).padStart(2, '0')}`
-                                    : 'none',
-                                }}
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: cellDelay, duration: 0.3 }}
-                                whileHover={
-                                  isActive
-                                    ? {
-                                        boxShadow: `0 0 16px ${palette.glow}60`,
-                                        scale: 1.1,
-                                      }
-                                    : {}
-                                }
-                              >
-                                {isActive && (
-                                  <motion.div
-                                    className="h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5"
-                                    style={{
-                                      backgroundColor: palette.glow,
-                                      opacity: intensity,
-                                      boxShadow: `0 0 6px ${palette.glow}80`,
-                                    }}
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ delay: cellDelay + 0.1, duration: 0.2 }}
-                                  />
-                                )}
-                              </motion.div>
-                            );
-                          })}
-                        </div>
+                              return (
+                                <motion.div
+                                  key={cellIdx}
+                                  className="flex h-5 w-6 items-center justify-center rounded-sm sm:h-5 sm:w-8"
+                                  style={{
+                                    backgroundColor: isActive
+                                      ? `${palette.primary}${Math.round(intensity * 40).toString(16).padStart(2, '0')}`
+                                      : 'rgba(255,255,255,0.03)',
+                                    border: `1px solid ${isActive ? palette.primary + '30' : 'rgba(255,255,255,0.05)'}`,
+                                    boxShadow: isActive
+                                      ? `0 0 ${cellIdx * 4 + 4}px ${palette.glow}${Math.round(intensity * 30).toString(16).padStart(2, '0')}`
+                                      : 'none',
+                                    transform: 'translateZ(20px)',
+                                  }}
+                                  initial={{ opacity: 0, scale: 0.5 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ ...SPRING_ENTER, delay: cellDelay }}
+                                  whileHover={
+                                    isActive
+                                      ? {
+                                          boxShadow: `0 0 16px ${palette.glow}60`,
+                                          scale: 1.1,
+                                        }
+                                      : {}
+                                  }
+                                >
+                                  {isActive && (
+                                    <motion.div
+                                      className="h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2"
+                                      style={{
+                                        backgroundColor: palette.glow,
+                                        opacity: intensity,
+                                        boxShadow: `0 0 6px ${palette.glow}80`,
+                                      }}
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      transition={{ ...SPRING_ENTER, delay: cellDelay + 0.1 }}
+                                    />
+                                  )}
+                                </motion.div>
+                              );
+                            })}
+                          </div>
 
-                        {/* Years */}
-                        <motion.span
-                          className="w-12 text-center font-mono text-xs text-gray-600"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: rowDelay + 0.4, duration: 0.3 }}
-                        >
-                          {skill.yearsOfExperience != null
-                            ? `${skill.yearsOfExperience}y`
-                            : '—'}
-                        </motion.span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                          {/* Years */}
+                          <motion.span
+                            className="w-10 text-center font-mono text-[10px] text-gray-600"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: rowDelay + 0.4, duration: 0.3 }}
+                          >
+                            {skill.yearsOfExperience != null
+                              ? `${skill.yearsOfExperience}y`
+                              : '\u2014'}
+                          </motion.span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Footer stats */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 1.2, duration: 0.4 }}
-              className="mt-6 border-t border-white/5 pt-4"
+              className="mt-2 border-t border-white/5 pt-2"
             >
-              <div className="flex flex-wrap gap-4 font-mono text-[10px] text-gray-600">
+              <div className="flex flex-wrap gap-3 font-mono text-[9px] text-gray-600">
                 <span>
                   <span style={{ color: palette.glow }}>TOTAL:</span>{' '}
                   {allSkills.length} skills
@@ -261,10 +279,10 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
             </motion.div>
 
             {/* Blinking cursor */}
-            <motion.div className="mt-4 font-mono text-xs">
+            <motion.div className="mt-2 font-mono text-[10px]">
               <span style={{ color: palette.glow }}>$</span>
               <motion.span
-                className="ml-1 inline-block h-3.5 w-1.5"
+                className="ml-1 inline-block h-3 w-1.5"
                 style={{ backgroundColor: palette.glow }}
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
@@ -279,7 +297,8 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: baseDelay + 1.5 }}
-            className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
+            className="mt-3 border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+            style={{ borderRadius: organicRadius }}
           >
             <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

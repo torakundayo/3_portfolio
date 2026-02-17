@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin } from 'lucide-react';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -17,49 +18,70 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
   const linkedin = d?.linkedin ?? '';
   const message = d?.message?.ja ?? d?.message?.en ?? '';
 
+  const secondaryLinks = [
+    github ? { href: github, icon: Github, label: 'GitHub' } : null,
+    linkedin ? { href: linkedin, icon: Linkedin, label: 'LinkedIn' } : null,
+  ].filter(Boolean) as { href: string; icon: typeof Github; label: string }[];
+
   return (
-    <div className="h-full w-full overflow-auto bg-gray-950 flex flex-col items-center justify-center relative">
-      {/* Dramatic dark background with animated glow */}
-      <motion.div
-        className="fixed inset-0 -z-10"
-        animate={{
-          background: [
-            `radial-gradient(ellipse at 50% 50%, ${palette.primary}18 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, ${palette.secondary}0a 0%, transparent 40%), #030712`,
-            `radial-gradient(ellipse at 50% 50%, ${palette.secondary}18 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, ${palette.primary}0a 0%, transparent 40%), #030712`,
-            `radial-gradient(ellipse at 50% 50%, ${palette.primary}18 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, ${palette.secondary}0a 0%, transparent 40%), #030712`,
-          ],
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-      />
+    <div className="h-full w-full overflow-hidden bg-gray-950 flex flex-col items-center justify-center relative">
+      {/* CSS keyframe background drifts (cyan/violet) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div
+          className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.primary}1f`,
+            left: '20%',
+            top: '15%',
+            animation: 'bg-drift-1 18s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.secondary}14`,
+            right: '15%',
+            bottom: '20%',
+            animation: 'bg-drift-2 22s ease-in-out infinite',
+          }}
+        />
+      </div>
 
       <div className="max-w-2xl w-full px-8 py-16 text-center">
-        {/* Large CTA text */}
+        {/* Large CTA text — ai-breathe on main heading */}
         <motion.h2
           className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight tracking-tight"
+          style={{
+            ...breatheStyle(0),
+            transform: 'translateZ(40px)',
+          }}
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
+          transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           {message || "Let's Connect"}
         </motion.h2>
 
-        {/* Pulsing email link */}
+        {/* Pulsing email link — organicRadius, translateZ(30px) */}
         {email && (
           <motion.div
             className="mb-12"
+            style={{ ...revealStyle(0) }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: baseDelay + 0.3 }}
+            transition={{ ...SPRING_ENTER, delay: baseDelay + 0.12 }}
           >
             <motion.a
               href={`mailto:${email}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 text-xl md:text-2xl font-medium px-8 py-4 rounded-2xl border transition-all duration-500"
+              className="inline-flex items-center gap-3 text-xl md:text-2xl font-medium px-8 py-4 border transition-all duration-500"
               style={{
                 color: palette.glow,
                 borderColor: `${palette.primary}40`,
                 backgroundColor: `${palette.primary}10`,
+                borderRadius: organicRadius,
+                transform: 'translateZ(30px)',
               }}
               whileHover={{
                 scale: 1.03,
@@ -82,43 +104,40 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
           </motion.div>
         )}
 
-        {/* Secondary links */}
+        {/* Secondary links — ai-reveal on each */}
         <motion.div
           className="flex items-center justify-center gap-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: baseDelay + 0.6 }}
         >
-          {github && (
-            <motion.a
-              href={github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 group"
-              whileHover={{ y: -2 }}
-            >
-              <Github className="w-5 h-5" />
-              <span className="text-sm tracking-wide">GitHub</span>
-            </motion.a>
-          )}
-          {linkedin && (
-            <motion.a
-              href={linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 group"
-              whileHover={{ y: -2 }}
-            >
-              <Linkedin className="w-5 h-5" />
-              <span className="text-sm tracking-wide">LinkedIn</span>
-            </motion.a>
-          )}
+          {secondaryLinks.map((link, i) => {
+            const Icon = link.icon;
+            return (
+              <motion.a
+                key={i}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 group"
+                style={{
+                  ...revealStyle(i + 1),
+                  transform: 'translateZ(30px)',
+                }}
+                whileHover={{ y: -2 }}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-sm tracking-wide">{link.label}</span>
+              </motion.a>
+            );
+          })}
         </motion.div>
 
         {/* Commentary */}
         {commentary && (
           <motion.div
             className="mt-16 prose prose-invert prose-gray prose-sm max-w-none"
+            style={{ transform: 'translateZ(20px)' }}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: baseDelay + 0.9 }}

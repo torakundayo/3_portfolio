@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
@@ -27,7 +28,7 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+      transition: { ...SPRING_ENTER, opacity: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const } },
     },
   };
 
@@ -36,31 +37,26 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
+      transition: { ...SPRING_ENTER, opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
     },
   };
 
   return (
-    <div className="h-full w-full overflow-auto relative bg-gray-950">
-      {/* Animated gradient background */}
-      <motion.div
-        className="absolute inset-0"
-        animate={{
-          background: [
-            `radial-gradient(ellipse at 50% 0%, ${palette.primary}18 0%, ${palette.secondary}08 40%, transparent 70%),
-             radial-gradient(ellipse at 50% 100%, ${palette.secondary}10 0%, transparent 50%)`,
-            `radial-gradient(ellipse at 40% 10%, ${palette.secondary}18 0%, ${palette.glow}08 40%, transparent 70%),
-             radial-gradient(ellipse at 60% 90%, ${palette.primary}10 0%, transparent 50%)`,
-            `radial-gradient(ellipse at 50% 0%, ${palette.primary}18 0%, ${palette.secondary}08 40%, transparent 70%),
-             radial-gradient(ellipse at 50% 100%, ${palette.secondary}10 0%, transparent 50%)`,
-          ],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-      />
+    <div className="h-full w-full overflow-hidden relative bg-gray-950">
+      {/* CSS keyframe background blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1F`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+      </div>
 
       {/* Noise texture overlay */}
       <div className="absolute inset-0 opacity-[0.015]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+        transform: 'translateZ(-20px)',
       }} />
 
       <div className="relative z-10 h-full flex items-center justify-center px-6 py-16">
@@ -74,6 +70,7 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
           <motion.h1
             variants={fadeUp}
             className="text-6xl md:text-8xl font-bold text-white tracking-tight leading-none"
+            style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
           >
             {profile?.name?.ja || profile?.name?.en || 'Name'}
           </motion.h1>
@@ -83,6 +80,7 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
             <motion.p
               variants={fadeUp}
               className="text-base md:text-lg text-white/30 mt-3 font-light tracking-widest uppercase"
+              style={{ transform: 'translateZ(25px)' }}
             >
               {profile.name.en}
             </motion.p>
@@ -101,7 +99,7 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
           <motion.p
             variants={fadeUp}
             className="text-xl md:text-2xl font-light"
-            style={{ color: palette.glow }}
+            style={{ color: palette.glow, transform: 'translateZ(25px)', ...breatheStyle(1) }}
           >
             {profile?.title?.ja || profile?.title?.en || ''}
           </motion.p>
@@ -111,6 +109,7 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
             <motion.p
               variants={fadeUp}
               className="text-sm text-white/30 mt-3 tracking-wide"
+              style={{ transform: 'translateZ(15px)' }}
             >
               {profile.location.ja || profile.location.en}
             </motion.p>
@@ -120,7 +119,8 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
           {(profile?.introduction?.ja || profile?.introduction?.en) && (
             <motion.p
               variants={fadeUp}
-              className="text-base md:text-lg text-white/60 leading-relaxed mt-10 font-light max-w-xl mx-auto"
+              className="text-base md:text-lg text-white/60 leading-relaxed mt-10 font-light max-w-xl mx-auto line-clamp-4"
+              style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
             >
               {profile.introduction.ja || profile.introduction.en}
             </motion.p>
@@ -130,7 +130,8 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
           {(profile?.background?.ja || profile?.background?.en) && (
             <motion.p
               variants={fadeUp}
-              className="text-sm text-white/40 leading-relaxed mt-6 max-w-lg mx-auto font-light"
+              className="text-sm text-white/40 leading-relaxed mt-6 max-w-lg mx-auto font-light line-clamp-3"
+              style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
             >
               {profile.background.ja || profile.background.en}
             </motion.p>
@@ -182,14 +183,15 @@ export function ProfileCenteredBio({ data, commentary, visualSeed }: TemplatePro
             <motion.div
               variants={fadeUp}
               className="mt-12 pt-8 border-t border-white/5 text-left max-w-lg mx-auto"
+              style={revealStyle(2)}
             >
               <p
                 className="text-[10px] uppercase tracking-[0.25em] mb-4 text-center"
-                style={{ color: palette.secondary }}
+                style={{ color: palette.secondary, transform: 'translateZ(25px)' }}
               >
                 AI Commentary
               </p>
-              <div className="prose prose-sm prose-invert prose-p:text-white/50 prose-p:font-light prose-p:leading-relaxed max-w-none">
+              <div className="prose prose-sm prose-invert prose-p:text-white/50 prose-p:font-light prose-p:leading-relaxed max-w-none line-clamp-6" style={{ transform: 'translateZ(15px)' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>
             </motion.div>

@@ -8,8 +8,8 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030712;
+  --foreground: #f9fafb;
 }
 
 @layer base {
@@ -72,6 +72,10 @@
   initial-value: 0deg;
   inherits: false;
 }
+@keyframes glow-rotate {
+  from { --glow-angle: 0deg; }
+  to { --glow-angle: 360deg; }
+}
 
 /* AI-like organic pulse — compositor thread, no JS overhead */
 @keyframes ai-breathe {
@@ -85,6 +89,44 @@
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Performant background gradient drift (replaces background property animation) */
+@keyframes bg-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.12; }
+  50%      { transform: translate(5vw, -3vh) scale(1.15); opacity: 0.18; }
+}
+@keyframes bg-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1.1); opacity: 0.08; }
+  50%      { transform: translate(-4vw, 4vh) scale(0.95); opacity: 0.14; }
+}
+
+/* Subtle floating for cards — organic, never perfectly still */
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-3px) rotate(0.3deg); }
+  75%      { transform: translateY(2px) rotate(-0.2deg); }
+}
+
+/* Border shimmer — a moving highlight along card edges */
+@property --shimmer-pos {
+  syntax: "<percentage>";
+  initial-value: -50%;
+  inherits: false;
+}
+@keyframes border-shimmer {
+  0%   { --shimmer-pos: -50%; }
+  100% { --shimmer-pos: 150%; }
+}
+
+/* Gentle element drift for decorative items */
+@keyframes element-drift {
+  0%, 100% { transform: translate(0, 0); }
+  33%      { transform: translate(4px, -6px); }
+  66%      { transform: translate(-3px, 4px); }
+}
+
+/* 3D context propagation */
+.preserve-3d { transform-style: preserve-3d; }
 
 /* Prose overrides for ReactMarkdown */
 .prose {

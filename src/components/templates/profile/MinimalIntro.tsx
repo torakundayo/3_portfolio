@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
@@ -35,22 +36,21 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const },
+      transition: { ...SPRING_ENTER, opacity: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const } },
     },
   };
 
   return (
-    <div className="h-full w-full overflow-auto relative bg-white">
-      {/* Very subtle gradient wash */}
-      <motion.div
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 2 }}
-        style={{
-          background: `radial-gradient(ellipse at ${mirror ? '80%' : '20%'} 20%, ${palette.primary}06 0%, transparent 60%)`,
-        }}
-      />
+    <div className="h-full w-full overflow-hidden relative bg-white">
+      {/* CSS keyframe background blobs - subtle for light theme */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}0A`, left: mirror ? '40%' : '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}06`, right: mirror ? '40%' : '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+      </div>
 
       <div
         className={`relative z-10 h-full flex items-center px-8 md:px-20 lg:px-32 py-16 ${
@@ -67,6 +67,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           <motion.h1
             variants={fadeIn}
             className="text-5xl md:text-7xl lg:text-8xl font-extralight text-gray-200 leading-none tracking-tight select-none"
+            style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
           >
             {profile?.name?.ja || profile?.name?.en || 'Name'}
           </motion.h1>
@@ -76,6 +77,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
             <motion.p
               variants={fadeIn}
               className="text-sm text-gray-300 mt-2 font-light tracking-widest"
+              style={{ transform: 'translateZ(25px)' }}
             >
               {profile.name.en}
             </motion.p>
@@ -92,6 +94,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           <motion.p
             variants={slideUp}
             className="text-lg md:text-xl text-gray-700 font-light leading-relaxed"
+            style={{ transform: 'translateZ(25px)', ...breatheStyle(1) }}
           >
             {profile?.title?.ja || profile?.title?.en || ''}
           </motion.p>
@@ -101,6 +104,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
             <motion.p
               variants={slideUp}
               className="text-xs text-gray-400 mt-2 tracking-wider"
+              style={{ transform: 'translateZ(15px)' }}
             >
               {profile.location.ja || profile.location.en}
             </motion.p>
@@ -110,7 +114,8 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {(profile?.introduction?.ja || profile?.introduction?.en) && (
             <motion.p
               variants={slideUp}
-              className="text-base text-gray-500 leading-[1.9] mt-10 font-light"
+              className="text-base text-gray-500 leading-[1.9] mt-10 font-light line-clamp-5"
+              style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
             >
               {profile.introduction.ja || profile.introduction.en}
             </motion.p>
@@ -120,7 +125,8 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {(profile?.background?.ja || profile?.background?.en) && (
             <motion.p
               variants={slideUp}
-              className="text-sm text-gray-400 leading-[1.8] mt-6 font-light"
+              className="text-sm text-gray-400 leading-[1.8] mt-6 font-light line-clamp-3"
+              style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
             >
               {profile.background.ja || profile.background.en}
             </motion.p>
@@ -162,11 +168,12 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
             <motion.div
               variants={slideUp}
               className="mt-16 pt-8 border-t border-gray-100"
+              style={revealStyle(2)}
             >
-              <p className="text-[10px] text-gray-300 uppercase tracking-[0.3em] mb-5">
+              <p className="text-[10px] text-gray-300 uppercase tracking-[0.3em] mb-5" style={{ transform: 'translateZ(25px)' }}>
                 Commentary
               </p>
-              <div className="prose prose-sm prose-gray prose-p:text-gray-400 prose-p:font-light prose-p:leading-relaxed max-w-none">
+              <div className="prose prose-sm prose-gray prose-p:text-gray-400 prose-p:font-light prose-p:leading-relaxed max-w-none line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>
             </motion.div>

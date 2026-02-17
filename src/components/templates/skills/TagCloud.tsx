@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 /**
  * Floating tag cloud visualization.
@@ -64,28 +65,29 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
   };
 
   return (
-    <div className="h-full w-full overflow-auto bg-gray-950">
-      {/* Deep space background */}
-      <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          background: `
-            radial-gradient(ellipse 60% 50% at 50% 50%, ${palette.primary}08, transparent),
-            radial-gradient(ellipse 40% 30% at ${mirror ? '70%' : '30%'} 30%, ${palette.secondary}06, transparent),
-            radial-gradient(ellipse 50% 40% at ${mirror ? '30%' : '70%'} 70%, ${palette.glow}04, transparent)
-          `,
-        }}
-      />
+    <div className="h-full w-full overflow-hidden bg-gray-950">
+      {/* CSS keyframe background blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1f`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+      </div>
 
-      <div className="relative z-10 flex h-full min-h-screen flex-col">
+      <div className="relative z-10 flex h-full flex-col">
         {/* Title */}
         <motion.div
-          className="px-6 pt-10 text-center"
+          className="px-6 pt-8 text-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: baseDelay }}
+          transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2
+            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
+          >
             <span
               className="bg-clip-text text-transparent"
               style={{
@@ -98,7 +100,7 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
         </motion.div>
 
         {/* Tag Cloud area */}
-        <div className="relative mx-auto w-full max-w-4xl flex-1 px-4" style={{ minHeight: '60vh' }}>
+        <div className="relative mx-auto w-full max-w-4xl flex-1 px-4" style={{ minHeight: '55vh' }}>
           {tagLayout.map((tag: any, i: number) => {
             const style = getLevelStyle(tag.level);
 
@@ -109,14 +111,14 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
                 style={{
                   left: `${tag.x}%`,
                   top: `${tag.y}%`,
-                  transform: 'translate(-50%, -50%)',
+                  transform: 'translate(-50%, -50%) translateZ(15px)',
+                  ...revealStyle(i),
                 }}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{
+                  ...SPRING_ENTER,
                   delay: tag.delay,
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1] as const,
                 }}
               >
                 <motion.div
@@ -144,11 +146,6 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
                     }}
                   >
                     {tag.skill.name}
-                    {tag.level >= 4 && (
-                      <span className="ml-1 text-[0.6em] opacity-60">
-                        Lv.{tag.level}
-                      </span>
-                    )}
                   </motion.span>
                 </motion.div>
               </motion.div>
@@ -156,37 +153,18 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
           })}
         </div>
 
-        {/* Legend */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: baseDelay + allSkills.length * 0.06 + 0.3, duration: 0.5 }}
-          className="flex items-center justify-center gap-4 px-6 pb-4 text-xs text-gray-600"
-        >
-          {[1, 2, 3, 4, 5].map((lvl) => (
-            <span key={lvl} className="flex items-center gap-1">
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{
-                  backgroundColor: palette.glow,
-                  opacity: 0.3 + (lvl / 5) * 0.7,
-                  boxShadow: `0 0 ${lvl * 2}px ${palette.glow}40`,
-                }}
-              />
-              Lv.{lvl}
-            </span>
-          ))}
-        </motion.div>
-
         {/* Commentary */}
         {commentary && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: baseDelay + allSkills.length * 0.06 + 0.6 }}
-            className="mx-auto mb-10 w-full max-w-2xl px-6"
+            className="mx-auto mb-6 w-full max-w-2xl px-6"
           >
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div
+              className="border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+              style={{ borderRadius: organicRadius }}
+            >
               <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>

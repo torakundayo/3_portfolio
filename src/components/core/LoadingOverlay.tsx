@@ -13,11 +13,12 @@ export function LoadingOverlay() {
       exit={{ opacity: 0 }}
       className="absolute inset-0 z-40 flex items-center justify-center"
     >
-      {/* Glass overlay */}
+      {/* Glass overlay — static blur, animate opacity only (GPU-composited) */}
       <motion.div
-        className="absolute inset-0 backdrop-blur-sm"
-        animate={{ backdropFilter: ['blur(0px)', 'blur(8px)'] }}
-        transition={{ duration: 1.5, ease: 'easeInOut' }}
+        className="absolute inset-0 backdrop-blur-[8px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: 'easeInOut' }}
       />
 
       {/* Morphing rings */}
@@ -79,14 +80,15 @@ export function LoadingOverlay() {
             style={{ transformOrigin: 'center' }}
           />
 
-          {/* Center dot */}
+          {/* Center dot — use scale instead of r (GPU-composited) */}
           <motion.circle
             cx="32"
             cy="32"
             r="2"
             fill="rgba(139, 92, 246, 0.6)"
-            animate={{ r: [2, 3, 2], opacity: [0.6, 1, 0.6] }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transformOrigin: '32px 32px' }}
           />
 
           <defs>

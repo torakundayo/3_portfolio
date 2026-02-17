@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -24,6 +25,9 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
   const baseDelay = visualSeed.animationDelay;
   const mirrorLayout = visualSeed.mirrorLayout;
 
+  // Limit to max 4 cards
+  const visibleProjects = projects.slice(0, 4);
+
   // Fan-out angles for card deck effect
   const getFanTransform = (index: number, total: number) => {
     if (total <= 1) return { rotate: 0, x: 0, y: 0 };
@@ -40,37 +44,34 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
   };
 
   return (
-    <div className="h-full w-full overflow-auto bg-zinc-950">
-      {/* Background */}
-      <div className="fixed inset-0 -z-0">
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: [
-              `radial-gradient(ellipse at 50% 60%, ${palette.primary}10, transparent 70%)`,
-              `radial-gradient(ellipse at 50% 40%, ${palette.secondary}10, transparent 70%)`,
-              `radial-gradient(ellipse at 50% 60%, ${palette.primary}10, transparent 70%)`,
-            ],
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-        />
-        {/* Subtle floor reflection */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1/4"
-          style={{
-            background: `linear-gradient(to top, ${palette.primary}06, transparent)`,
-          }}
-        />
+    <div className="h-full w-full overflow-hidden bg-zinc-950 flex flex-col">
+      {/* CSS keyframe background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1f`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite' }} />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-10 flex flex-col items-center min-h-full">
+      {/* Subtle floor reflection */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1/4 pointer-events-none"
+        style={{
+          background: `linear-gradient(to top, ${palette.primary}06, transparent)`,
+          transform: 'translateZ(-20px)',
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col items-center h-full px-6 py-5">
         {/* Commentary */}
         {commentary && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
-            className="mb-12 text-center w-full"
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            className="mb-4 text-center w-full flex-shrink-0"
           >
             <div className="max-w-xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-400 prose-headings:text-white">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -80,15 +81,15 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
           </motion.div>
         )}
 
-        {/* Stacked card deck area */}
-        <div className="relative w-full max-w-lg flex-1 flex items-center justify-center py-8">
-          <div className="relative w-full" style={{ minHeight: '360px' }}>
-            {projects.map((project, i) => {
-              const fan = getFanTransform(i, projects.length);
+        {/* Stacked card deck area — constrained height */}
+        <div className="relative w-full max-w-lg flex-1 flex items-center justify-center" style={{ maxHeight: '340px' }}>
+          <div className="relative w-full h-full">
+            {visibleProjects.map((project, i) => {
+              const fan = getFanTransform(i, visibleProjects.length);
               const cardDelay = baseDelay + 0.2 + i * 0.15;
               const tagline = project.tagline?.en || project.tagline?.ja || '';
               const description = project.description?.en || project.description?.ja || '';
-              const zIndex = projects.length - i;
+              const zIndex = visibleProjects.length - i;
 
               // Each card gets a slightly different gradient from the palette
               const gradientRotation = 135 + i * 30 + visualSeed.colorOffset * 0.1;
@@ -111,9 +112,11 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                     y: fan.y,
                   }}
                   transition={{
-                    duration: 0.8,
-                    delay: cardDelay,
-                    ease: [0.22, 1, 0.36, 1] as const,
+                    opacity: { duration: 0.8, delay: cardDelay, ease: [0.22, 1, 0.36, 1] as const },
+                    scale: { ...SPRING_ENTER, delay: i * 0.12 },
+                    rotate: { ...SPRING_ENTER, delay: i * 0.12 },
+                    x: { ...SPRING_ENTER, delay: i * 0.12 },
+                    y: { ...SPRING_ENTER, delay: i * 0.12 },
                   }}
                   whileHover={{
                     scale: 1.04,
@@ -121,13 +124,14 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                     x: 0,
                     y: -10,
                     zIndex: 50,
-                    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
+                    transition: { ...SPRING_ENTER },
                   }}
-                  style={{ zIndex }}
+                  style={{ zIndex, ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
                 >
                   <div
-                    className="relative h-full rounded-2xl border border-white/10 bg-zinc-900/90 backdrop-blur-md p-6 overflow-hidden transition-shadow duration-500"
+                    className="relative h-full border border-white/10 backdrop-blur-xl bg-black/20 p-5 overflow-hidden transition-shadow duration-500"
                     style={{
+                      borderRadius: organicRadius,
                       boxShadow: `
                         0 4px 6px rgba(0,0,0,0.3),
                         0 10px 30px rgba(0,0,0,0.2),
@@ -147,6 +151,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                     <div
                       className="absolute inset-0 opacity-5 pointer-events-none"
                       style={{
+                        borderRadius: organicRadius,
                         background: `linear-gradient(${gradientRotation}deg, ${palette.primary}, transparent 60%)`,
                       }}
                     />
@@ -156,7 +161,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                       {/* Image */}
                       {project.image && (
                         <div
-                          className="w-full h-32 rounded-lg mb-4 overflow-hidden flex-shrink-0"
+                          className="w-full h-24 rounded-lg mb-3 overflow-hidden flex-shrink-0"
                           style={{
                             background: `linear-gradient(${gradientRotation}deg, ${palette.primary}15, ${palette.secondary}08)`,
                           }}
@@ -184,13 +189,16 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                         )}
                       </div>
 
-                      <h3 className="text-xl font-black text-white mb-1 tracking-tight">
+                      <h3
+                        className="text-lg font-black text-white mb-1 tracking-tight"
+                        style={{ ...breatheStyle(i), transform: 'translateZ(40px)' }}
+                      >
                         {project.name}
                       </h3>
 
                       {tagline && (
                         <p
-                          className="text-sm mb-3"
+                          className="text-xs mb-2 line-clamp-1"
                           style={{ color: `${palette.glow}cc` }}
                         >
                           {tagline}
@@ -198,18 +206,18 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                       )}
 
                       {description && (
-                        <p className="text-xs text-zinc-500 mb-4 leading-relaxed line-clamp-2">
+                        <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed line-clamp-2">
                           {description}
                         </p>
                       )}
 
                       {/* Stack */}
                       {project.stack && project.stack.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
-                          {project.stack.map((tech) => (
+                        <div className="flex flex-wrap gap-1 mb-3 mt-auto">
+                          {project.stack.slice(0, 4).map((tech) => (
                             <span
                               key={tech}
-                              className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+                              className="text-[9px] font-medium px-1.5 py-0.5 rounded-full border"
                               style={{
                                 color: `${palette.glow}99`,
                                 borderColor: `${palette.primary}20`,
@@ -219,6 +227,11 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                               {tech}
                             </span>
                           ))}
+                          {project.stack.length > 4 && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600">
+                              +{project.stack.length - 4}
+                            </span>
+                          )}
                         </div>
                       )}
 
@@ -229,7 +242,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                             href={project.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-semibold px-4 py-1.5 rounded-lg transition-all duration-300 hover:scale-105"
+                            className="text-xs font-semibold px-3 py-1 rounded-lg transition-all duration-300 hover:scale-105"
                             style={{
                               color: 'white',
                               background: `linear-gradient(135deg, ${palette.primary}cc, ${palette.secondary}cc)`,
@@ -244,7 +257,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                             href={project.github}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-medium px-4 py-1.5 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:border-white/20 transition-all duration-300"
+                            className="text-xs font-medium px-3 py-1 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:border-white/20 transition-all duration-300"
                           >
                             Source
                           </a>
@@ -259,14 +272,14 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
         </div>
 
         {/* Card count indicator */}
-        {projects.length > 1 && (
+        {visibleProjects.length > 1 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: baseDelay + 0.2 + projects.length * 0.15 + 0.5, duration: 0.5 }}
-            className="flex items-center gap-2 mt-6 mb-4"
+            transition={{ delay: baseDelay + 0.2 + visibleProjects.length * 0.15 + 0.5, duration: 0.5 }}
+            className="flex items-center gap-2 mt-4 mb-2"
           >
-            {projects.map((_, i) => (
+            {visibleProjects.map((_, i) => (
               <div
                 key={i}
                 className="w-1.5 h-1.5 rounded-full transition-all duration-300"

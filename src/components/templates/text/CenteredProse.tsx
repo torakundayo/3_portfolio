@@ -5,35 +5,87 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function TextCenteredProse({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
-  const gradientAngle = 135 + visualSeed.colorOffset * 0.25;
 
   return (
-    <div className="h-full w-full flex items-center justify-center overflow-auto p-8">
-      {/* Animated background */}
-      <motion.div
-        className="absolute inset-0 -z-10"
-        animate={{
-          background: [
-            `linear-gradient(${gradientAngle}deg, ${palette.primary}08, ${palette.secondary}05, white)`,
-            `linear-gradient(${gradientAngle + 60}deg, ${palette.secondary}08, ${palette.glow}05, white)`,
-            `linear-gradient(${gradientAngle}deg, ${palette.primary}08, ${palette.secondary}05, white)`,
-          ],
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-      />
+    <div className="h-full w-full flex items-center justify-center overflow-hidden p-8 bg-gray-950 relative">
+      {/* CSS keyframe bg blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1a`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 20s ease-in-out infinite' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}12`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 24s ease-in-out infinite' }} />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
-        className="max-w-2xl w-full"
+        transition={{ ...SPRING_ENTER, delay: 0 }}
+        className="max-w-2xl w-full relative z-10"
+        style={{ transform: 'translateZ(15px)' }}
       >
         {commentary && (
-          <div className="prose prose-lg prose-gray max-w-none leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <div
+            className="prose prose-lg prose-invert max-w-none leading-relaxed max-h-[70vh] overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 100%)',
+            }}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ children }) => (
+                  <h1
+                    className="text-gray-100"
+                    style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
+                  >
+                    {children}
+                  </h1>
+                ),
+                h2: ({ children }) => (
+                  <h2
+                    className="text-gray-100"
+                    style={{ ...breatheStyle(1), transform: 'translateZ(40px)' }}
+                  >
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3
+                    className="text-gray-200"
+                    style={{ ...breatheStyle(2), transform: 'translateZ(40px)' }}
+                  >
+                    {children}
+                  </h3>
+                ),
+                p: ({ children }) => (
+                  <p
+                    className="text-gray-300"
+                    style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
+                  >
+                    {children}
+                  </p>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote
+                    className="border-l-2 pl-4 italic text-gray-400"
+                    style={{
+                      ...breatheStyle(1),
+                      transform: 'translateZ(30px)',
+                      borderColor: palette.primary,
+                    }}
+                  >
+                    {children}
+                  </blockquote>
+                ),
+              }}
+            >
               {commentary}
             </ReactMarkdown>
           </div>

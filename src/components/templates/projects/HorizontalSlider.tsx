@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -26,18 +27,15 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden bg-zinc-950">
-      {/* Subtle animated background gradient */}
-      <motion.div
-        className="absolute inset-0 -z-0"
-        animate={{
-          background: [
-            `radial-gradient(ellipse at 20% 50%, ${palette.primary}15, transparent 60%)`,
-            `radial-gradient(ellipse at 80% 50%, ${palette.secondary}15, transparent 60%)`,
-            `radial-gradient(ellipse at 20% 50%, ${palette.primary}15, transparent 60%)`,
-          ],
-        }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
-      />
+      {/* CSS keyframe background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1f`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite' }} />
+      </div>
 
       <div className="relative z-10 flex flex-col h-full">
         {/* Commentary section */}
@@ -45,8 +43,8 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
-            className="px-8 pt-8 pb-4 flex-shrink-0"
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            className="px-8 pt-6 pb-2 flex-shrink-0"
           >
             <div className="max-w-2xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -56,10 +54,9 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
           </motion.div>
         )}
 
-        {/* Horizontal scrolling area */}
-        <div className="flex-1 flex items-center overflow-x-auto overflow-y-hidden px-8 pb-8 pt-4 gap-6 scroll-smooth snap-x snap-mandatory">
+        {/* Horizontal scrolling area — vertical overflow hidden, horizontal scroll kept */}
+        <div className="flex-1 flex items-center overflow-x-auto overflow-y-hidden px-8 pb-6 pt-2 gap-6 scroll-smooth snap-x snap-mandatory">
           {projects.map((project, i) => {
-            const cardDelay = baseDelay + 0.15 * i;
             const tagline = project.tagline?.en || project.tagline?.ja || '';
 
             return (
@@ -68,15 +65,17 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                 initial={{ opacity: 0, x: 120, rotateY: -8 }}
                 animate={{ opacity: 1, x: 0, rotateY: 0 }}
                 transition={{
-                  duration: 0.7,
-                  delay: cardDelay,
-                  ease: [0.22, 1, 0.36, 1] as const,
+                  opacity: { duration: 0.7, delay: baseDelay + 0.15 * i, ease: [0.22, 1, 0.36, 1] as const },
+                  x: { ...SPRING_ENTER, delay: i * 0.12 },
+                  rotateY: { ...SPRING_ENTER, delay: i * 0.12 },
                 }}
-                className="flex-shrink-0 w-[340px] snap-center group"
+                className="flex-shrink-0 w-[320px] snap-center group"
+                style={{ ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
               >
                 <div
-                  className="relative h-[420px] rounded-2xl border border-white/10 bg-zinc-900/80 backdrop-blur-sm p-6 flex flex-col overflow-hidden transition-all duration-500 hover:border-white/20"
+                  className="relative h-[360px] border border-white/10 backdrop-blur-xl bg-white/5 p-5 flex flex-col overflow-hidden transition-all duration-500 hover:border-white/20"
                   style={{
+                    borderRadius: organicRadius,
                     boxShadow: `0 0 0 1px ${palette.primary}10`,
                   }}
                 >
@@ -88,21 +87,22 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                     }}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.8, delay: cardDelay + 0.3, ease: [0.22, 1, 0.36, 1] as const }}
+                    transition={{ ...SPRING_ENTER, delay: baseDelay + 0.15 * i + 0.3 }}
                   />
 
                   {/* Hover glow effect */}
                   <div
-                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                     style={{
+                      borderRadius: organicRadius,
                       background: `radial-gradient(ellipse at 50% 0%, ${palette.glow}12, transparent 70%)`,
                     }}
                   />
 
-                  {/* Project image placeholder */}
+                  {/* Project image */}
                   {project.image && (
                     <div
-                      className="w-full h-32 rounded-lg mb-4 overflow-hidden flex-shrink-0"
+                      className="w-full h-28 rounded-lg mb-3 overflow-hidden flex-shrink-0"
                       style={{
                         background: `linear-gradient(${gradientAngle}deg, ${palette.primary}20, ${palette.secondary}10)`,
                       }}
@@ -130,20 +130,23 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                   )}
 
                   {/* Name */}
-                  <h3 className="text-xl font-bold text-white mb-1 tracking-tight">
+                  <h3
+                    className="text-xl font-bold text-white mb-1 tracking-tight"
+                    style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
+                  >
                     {project.name}
                   </h3>
 
                   {/* Tagline */}
                   {tagline && (
-                    <p className="text-sm text-zinc-400 mb-4 line-clamp-2">
+                    <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
                       {tagline}
                     </p>
                   )}
 
                   {/* Stack badges */}
                   {project.stack && project.stack.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
+                    <div className="flex flex-wrap gap-1.5 mb-3 mt-auto">
                       {project.stack.map((tech) => (
                         <span
                           key={tech}

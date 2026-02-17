@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -16,27 +17,41 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
   const workStyle = d?.workStyle?.ja ?? d?.workStyle?.en ?? '';
 
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-hidden">
       {/* Warm, paper-like background */}
-      <motion.div
+      <div
         className="fixed inset-0 -z-10"
         style={{
           background: `linear-gradient(180deg, #fafaf8 0%, #f5f3ef 40%, #fafaf8 100%)`,
         }}
       />
 
-      {/* Soft colored accents */}
-      <div
-        className="fixed inset-0 -z-10 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse at 20% 30%, ${palette.primary}06 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, ${palette.secondary}06 0%, transparent 50%)`,
-        }}
-      />
+      {/* CSS keyframe background drifts (rose/violet) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div
+          className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.primary}1f`,
+            left: '20%',
+            top: '15%',
+            animation: 'bg-drift-1 18s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.secondary}14`,
+            right: '15%',
+            bottom: '20%',
+            animation: 'bg-drift-2 22s ease-in-out infinite',
+          }}
+        />
+      </div>
 
-      <div className="max-w-2xl mx-auto px-8 py-20">
+      <div className="max-w-2xl mx-auto px-8 py-8">
         {/* Opening ornament */}
         <motion.div
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.2, delay: baseDelay }}
@@ -48,18 +63,22 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
           </div>
         </motion.div>
 
-        {/* Beliefs section */}
+        {/* Beliefs section — ai-breathe on heading, ai-reveal, line-clamp-3 */}
         {beliefs && (
           <motion.section
-            className="mb-16"
+            className="mb-8"
+            style={{ ...revealStyle(0), borderRadius: organicRadius }}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: baseDelay + 0.2, ease: [0.22, 1, 0.36, 1] as const }}
+            transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
           >
-            {/* Drop cap style first paragraph */}
             <p
-              className="text-lg md:text-xl text-gray-700 leading-[1.9] tracking-wide"
-              style={{ fontFamily: 'Georgia, "Noto Serif JP", serif' }}
+              className="text-lg md:text-xl text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+              style={{
+                fontFamily: 'Georgia, "Noto Serif JP", serif',
+                ...breatheStyle(0),
+                transform: 'translateZ(40px)',
+              }}
             >
               {beliefs}
             </p>
@@ -70,7 +89,7 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
         {vision && (
           <>
             <motion.div
-              className="flex justify-center mb-16"
+              className="flex justify-center mb-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: baseDelay + 0.5 }}
@@ -86,27 +105,35 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
               </div>
             </motion.div>
 
-            {/* Vision section */}
+            {/* Vision section — ai-reveal, line-clamp-3 */}
             <motion.section
-              className="mb-16"
+              className="mb-8"
+              style={{ ...revealStyle(1), borderRadius: organicRadius }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: baseDelay + 0.6, ease: [0.22, 1, 0.36, 1] as const }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.6 }}
             >
               <motion.div
-                className="pl-6 border-l-2 mb-6"
+                className="pl-6 border-l-2 mb-4"
                 style={{ borderColor: `${palette.primary}30` }}
               >
                 <span
                   className="text-xs font-medium tracking-[0.2em] uppercase"
-                  style={{ color: palette.primary }}
+                  style={{
+                    color: palette.primary,
+                    ...breatheStyle(1),
+                    transform: 'translateZ(25px)',
+                  }}
                 >
                   Vision
                 </span>
               </motion.div>
               <p
-                className="text-lg text-gray-700 leading-[1.9] tracking-wide"
-                style={{ fontFamily: 'Georgia, "Noto Serif JP", serif' }}
+                className="text-lg text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+                style={{
+                  fontFamily: 'Georgia, "Noto Serif JP", serif',
+                  transform: 'translateZ(20px)',
+                }}
               >
                 {vision}
               </p>
@@ -114,11 +141,11 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
           </>
         )}
 
-        {/* Work Style section */}
+        {/* Work Style section — ai-reveal, line-clamp-3 */}
         {workStyle && (
           <>
             <motion.div
-              className="flex justify-center mb-16"
+              className="flex justify-center mb-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: baseDelay + 0.9 }}
@@ -135,25 +162,33 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
             </motion.div>
 
             <motion.section
-              className="mb-16"
+              className="mb-8"
+              style={{ ...revealStyle(2), borderRadius: organicRadius }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: baseDelay + 1.0, ease: [0.22, 1, 0.36, 1] as const }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 1.0 }}
             >
               <motion.div
-                className="pl-6 border-l-2 mb-6"
+                className="pl-6 border-l-2 mb-4"
                 style={{ borderColor: `${palette.secondary}30` }}
               >
                 <span
                   className="text-xs font-medium tracking-[0.2em] uppercase"
-                  style={{ color: palette.secondary }}
+                  style={{
+                    color: palette.secondary,
+                    ...breatheStyle(2),
+                    transform: 'translateZ(25px)',
+                  }}
                 >
                   Work Style
                 </span>
               </motion.div>
               <p
-                className="text-lg text-gray-700 leading-[1.9] tracking-wide"
-                style={{ fontFamily: 'Georgia, "Noto Serif JP", serif' }}
+                className="text-lg text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+                style={{
+                  fontFamily: 'Georgia, "Noto Serif JP", serif',
+                  transform: 'translateZ(20px)',
+                }}
               >
                 {workStyle}
               </p>
@@ -163,7 +198,7 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
 
         {/* Closing ornament */}
         <motion.div
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: baseDelay + 1.3 }}
@@ -179,6 +214,7 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
         {commentary && (
           <motion.div
             className="prose prose-gray max-w-none prose-p:leading-relaxed"
+            style={{ transform: 'translateZ(20px)' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: baseDelay + 1.5 }}

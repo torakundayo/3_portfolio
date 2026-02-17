@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin, ExternalLink } from 'lucide-react';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -24,12 +25,38 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
   ].filter((l) => l.href);
 
   return (
-    <div className="h-full w-full overflow-auto flex flex-col items-center justify-center bg-white">
+    <div className="h-full w-full overflow-hidden flex flex-col items-center justify-center bg-white">
+      {/* CSS keyframe background drifts (cyan/violet) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div
+          className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.primary}1f`,
+            left: '20%',
+            top: '15%',
+            animation: 'bg-drift-1 18s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.secondary}14`,
+            right: '15%',
+            bottom: '20%',
+            animation: 'bg-drift-2 22s ease-in-out infinite',
+          }}
+        />
+      </div>
+
       <div className="max-w-lg w-full px-8 py-16">
-        {/* Message */}
+        {/* Message — ai-breathe on main text */}
         {message && (
           <motion.p
             className="text-sm text-gray-400 text-center mb-12 tracking-wide"
+            style={{
+              ...breatheStyle(0),
+              transform: 'translateZ(40px)',
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: baseDelay }}
@@ -38,7 +65,7 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
           </motion.p>
         )}
 
-        {/* Links - vertically centered, ultra minimal */}
+        {/* Links — ai-reveal on each item */}
         <div className="flex flex-col items-center space-y-6">
           {links.map((link, i) => {
             const Icon = link.icon;
@@ -49,12 +76,15 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 text-gray-500 hover:text-gray-900 transition-colors duration-300"
+                style={{
+                  ...revealStyle(i),
+                  transform: 'translateZ(30px)',
+                }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.5,
-                  delay: baseDelay + 0.15 * i,
-                  ease: [0.22, 1, 0.36, 1] as const,
+                  ...SPRING_ENTER,
+                  delay: baseDelay + 0.12 * i,
                 }}
               >
                 <Icon className="w-4 h-4" />
@@ -89,6 +119,7 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
         {commentary && (
           <motion.div
             className="prose prose-sm prose-gray max-w-none text-center"
+            style={{ transform: 'translateZ(20px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: baseDelay + 0.8 }}

@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -13,28 +14,29 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
 
-  return (
-    <div className="h-full w-full overflow-auto bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      {/* Subtle animated background glow */}
-      <motion.div
-        className="pointer-events-none fixed inset-0 -z-0"
-        animate={{
-          background: [
-            `radial-gradient(ellipse 80% 60% at ${mirror ? '70%' : '30%'} 30%, ${palette.primary}12, transparent)`,
-            `radial-gradient(ellipse 80% 60% at ${mirror ? '30%' : '70%'} 70%, ${palette.secondary}12, transparent)`,
-            `radial-gradient(ellipse 80% 60% at ${mirror ? '70%' : '30%'} 30%, ${palette.primary}12, transparent)`,
-          ],
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-      />
+  // Flatten all skills with a global index for revealStyle
+  let globalSkillIdx = 0;
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-12 sm:px-8 lg:py-16">
+  return (
+    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+      {/* CSS keyframe background blobs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{ background: `${palette.primary}1f`, left: '20%', top: '15%',
+                   animation: 'bg-drift-1 18s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+        <div className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{ background: `${palette.secondary}14`, right: '15%', bottom: '20%',
+                   animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10 h-full flex flex-col">
         {/* Header */}
         <motion.h2
           initial={{ opacity: 0, x: mirror ? 40 : -40 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
-          className="mb-10 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          transition={{ ...SPRING_ENTER, delay: baseDelay }}
+          className="mb-6 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
         >
           <span
             className="bg-clip-text text-transparent"
@@ -46,139 +48,127 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
           </span>
         </motion.h2>
 
-        {/* Categories */}
-        {categories.map((category: any, catIdx: number) => {
-          const catDelay = baseDelay + catIdx * 0.15;
+        {/* Categories laid out side by side horizontally */}
+        <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+          {categories.map((category: any, catIdx: number) => {
+            const catDelay = baseDelay + catIdx * 0.15;
+            const catStartIdx = globalSkillIdx;
 
-          return (
-            <motion.div
-              key={catIdx}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: catDelay, ease: [0.22, 1, 0.36, 1] as const }}
-              className="mb-10 last:mb-0"
-            >
-              {/* Category name */}
-              <div className="mb-4 flex items-center gap-3">
-                <motion.div
-                  className="h-px flex-1"
-                  style={{ background: `linear-gradient(${mirror ? '270deg' : '90deg'}, ${palette.primary}60, transparent)` }}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.8, delay: catDelay + 0.1 }}
-                  style-origin={mirror ? 'right' : 'left'}
-                />
-                <h3 className="shrink-0 text-sm font-semibold uppercase tracking-widest text-gray-400">
-                  {category.name?.ja ?? category.name?.en ?? ''}
-                  {category.name?.en && (
-                    <span className="ml-2 text-xs font-normal text-gray-600">
-                      {category.name.en}
-                    </span>
-                  )}
-                </h3>
-                <motion.div
-                  className="h-px flex-1"
-                  style={{ background: `linear-gradient(${mirror ? '90deg' : '270deg'}, ${palette.primary}60, transparent)` }}
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.8, delay: catDelay + 0.1 }}
-                />
-              </div>
+            return (
+              <motion.div
+                key={catIdx}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...SPRING_ENTER, delay: catDelay }}
+                className="flex-1 min-w-0 flex flex-col"
+              >
+                {/* Category name */}
+                <div className="mb-3 flex items-center gap-2">
+                  <motion.div
+                    className="h-px flex-1"
+                    style={{ background: `linear-gradient(${mirror ? '270deg' : '90deg'}, ${palette.primary}60, transparent)`, transformOrigin: mirror ? 'right' : 'left' }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.8, delay: catDelay + 0.1 }}
+                  />
+                  <h3 className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                    {category.name?.ja ?? category.name?.en ?? ''}
+                    {category.name?.en && (
+                      <span className="ml-1.5 text-[10px] font-normal text-gray-600">
+                        {category.name.en}
+                      </span>
+                    )}
+                  </h3>
+                  <motion.div
+                    className="h-px flex-1"
+                    style={{ background: `linear-gradient(${mirror ? '90deg' : '270deg'}, ${palette.primary}60, transparent)` }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.8, delay: catDelay + 0.1 }}
+                  />
+                </div>
 
-              {/* Skill bars */}
-              <div className="space-y-3">
-                {(category.skills ?? []).map((skill: any, skillIdx: number) => {
-                  const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
-                  const pct = (level / 5) * 100;
-                  const skillDelay = catDelay + 0.2 + skillIdx * 0.08;
+                {/* Skill bars - compact */}
+                <div className="space-y-1.5 flex-1 min-h-0">
+                  {(category.skills ?? []).map((skill: any, skillIdx: number) => {
+                    const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
+                    const pct = (level / 5) * 100;
+                    const skillDelay = catDelay + 0.2 + skillIdx * 0.08;
+                    const revealIdx = catStartIdx + skillIdx;
+                    // Advance globalSkillIdx only on first category render pass — store for later use
+                    const currentGlobalIdx = (() => { globalSkillIdx++; return revealIdx; })();
 
-                  return (
-                    <motion.div
-                      key={skillIdx}
-                      initial={{ opacity: 0, x: mirror ? 20 : -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: skillDelay, ease: [0.22, 1, 0.36, 1] as const }}
-                      className="group"
-                    >
-                      <div
-                        className={`flex items-center gap-4 ${mirror ? 'flex-row-reverse' : 'flex-row'}`}
+                    return (
+                      <motion.div
+                        key={skillIdx}
+                        initial={{ opacity: 0, x: mirror ? 20 : -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ ...SPRING_ENTER, delay: skillDelay }}
+                        className="group"
+                        style={{ ...revealStyle(currentGlobalIdx), transform: 'translateZ(15px)' }}
                       >
-                        {/* Skill name */}
-                        <span
-                          className={`w-32 shrink-0 text-sm font-medium text-gray-300 ${mirror ? 'text-right' : 'text-left'}`}
-                        >
-                          {skill.name}
-                        </span>
-
-                        {/* Bar track */}
-                        <div className="relative h-7 flex-1 overflow-hidden rounded-md bg-white/5 backdrop-blur-sm">
-                          {/* Animated fill */}
-                          <motion.div
-                            className="absolute inset-y-0 left-0 rounded-md"
-                            style={{
-                              background: `linear-gradient(90deg, ${palette.primary}, ${palette.secondary})`,
-                              boxShadow: `0 0 20px ${palette.glow}30`,
-                            }}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{
-                              duration: 1.0,
-                              delay: skillDelay + 0.15,
-                              ease: [0.22, 1, 0.36, 1] as const,
-                            }}
-                          />
-
-                          {/* Shimmer overlay */}
-                          <motion.div
-                            className="absolute inset-y-0 left-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{
-                              width: `${pct}%`,
-                              background: `linear-gradient(90deg, transparent, ${palette.glow}20, transparent)`,
-                            }}
-                            animate={{ x: ['-100%', '200%'] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: 'linear', repeatDelay: 1 }}
-                          />
-
-                          {/* Level text inside bar */}
-                          <motion.span
-                            className="absolute inset-y-0 flex items-center px-3 text-xs font-bold text-white/90"
-                            style={{ left: 0 }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: skillDelay + 0.7, duration: 0.4 }}
-                          >
-                            {level}/5
-                          </motion.span>
-                        </div>
-
-                        {/* Years badge */}
-                        {skill.yearsOfExperience != null && (
-                          <motion.span
-                            className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-400 ring-1 ring-white/10"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: skillDelay + 0.5, duration: 0.3 }}
-                          >
-                            {skill.yearsOfExperience}yr
-                          </motion.span>
-                        )}
-                      </div>
-
-                      {/* Details tooltip on hover */}
-                      {(skill.details?.ja || skill.details?.en) && (
                         <div
-                          className={`mt-1 max-h-0 overflow-hidden text-xs text-gray-500 transition-all duration-300 group-hover:max-h-20 group-hover:mt-2 ${mirror ? 'text-right pr-2' : 'text-left pl-36'}`}
+                          className={`flex items-center gap-2 ${mirror ? 'flex-row-reverse' : 'flex-row'}`}
                         >
-                          {skill.details?.ja ?? skill.details?.en}
+                          {/* Skill name */}
+                          <span
+                            className={`w-24 shrink-0 text-xs font-medium text-gray-300 truncate ${mirror ? 'text-right' : 'text-left'}`}
+                          >
+                            {skill.name}
+                          </span>
+
+                          {/* Bar track — glow intensity scales with proficiency */}
+                          <div className="relative h-5 flex-1 overflow-hidden rounded-md bg-white/5 backdrop-blur-sm">
+                            {/* Animated fill using scaleX */}
+                            <motion.div
+                              className="absolute inset-y-0 left-0 right-0 rounded-md"
+                              style={{
+                                background: `linear-gradient(90deg, ${palette.primary}${level >= 4 ? 'ff' : level >= 3 ? 'cc' : '99'}, ${palette.secondary})`,
+                                boxShadow: `0 0 ${8 + level * 6}px ${palette.glow}${Math.round(15 + level * 12).toString(16).padStart(2, '0')}`,
+                                transformOrigin: 'left',
+                              }}
+                              initial={{ scaleX: 0 }}
+                              animate={{ scaleX: pct / 100 }}
+                              transition={{
+                                ...SPRING_ENTER,
+                                delay: skillDelay + 0.15,
+                              }}
+                            />
+
+                            {/* Shimmer — only on high-proficiency bars */}
+                            {level >= 4 && (
+                              <motion.div
+                                className="absolute inset-y-0 left-0 rounded-md"
+                                style={{
+                                  width: `${pct}%`,
+                                  background: `linear-gradient(90deg, transparent, ${palette.glow}30, transparent)`,
+                                }}
+                                animate={{ x: ['-100%', '200%'] }}
+                                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', repeatDelay: 2 }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Years badge */}
+                          {skill.yearsOfExperience != null && (
+                            <motion.span
+                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-400 ring-1 ring-white/10"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ ...SPRING_ENTER, delay: skillDelay + 0.5 }}
+                            >
+                              {skill.yearsOfExperience}yr
+                            </motion.span>
+                          )}
                         </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          );
-        })}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
 
         {/* Commentary */}
         {commentary && (
@@ -186,7 +176,8 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: baseDelay + categories.length * 0.15 + 0.5 }}
-            className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
+            className="mt-6 border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            style={{ borderRadius: organicRadius }}
           >
             <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

@@ -24,9 +24,25 @@ export const transitionVariants: Record<TransitionVariant, Variants> = {
   },
 };
 
+/* Spring-based transitions per design-principles.md
+   clipPath/filter don't support spring — use tween for those,
+   spring for transform/opacity properties */
 export const transitionConfig: Record<TransitionVariant, object> = {
-  clipExpand: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
-  slideOver: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-  scaleBlur: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  verticalSplit: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
+  clipExpand: {
+    clipPath: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
+    opacity: { type: 'spring', stiffness: 60, damping: 18 },
+  },
+  slideOver: {
+    x: { type: 'spring', stiffness: 80, damping: 20 },
+    opacity: { type: 'spring', stiffness: 60, damping: 18 },
+  },
+  scaleBlur: {
+    scale: { type: 'spring', stiffness: 60, damping: 18 },
+    filter: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+    opacity: { type: 'spring', stiffness: 60, damping: 18 },
+  },
+  verticalSplit: {
+    clipPath: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
+    opacity: { type: 'spring', stiffness: 60, damping: 18 },
+  },
 };

@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
 
 export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -28,40 +29,51 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
   ].filter((s) => s.text);
 
   return (
-    <div className="h-full w-full overflow-auto bg-gray-950">
-      {/* Dramatic gradient backdrop */}
-      <motion.div
-        className="fixed inset-0 -z-10"
-        animate={{
-          background: [
-            `linear-gradient(170deg, ${palette.primary}0d 0%, transparent 30%, transparent 70%, ${palette.secondary}08 100%)`,
-            `linear-gradient(170deg, ${palette.secondary}0d 0%, transparent 30%, transparent 70%, ${palette.primary}08 100%)`,
-            `linear-gradient(170deg, ${palette.primary}0d 0%, transparent 30%, transparent 70%, ${palette.secondary}08 100%)`,
-          ],
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
-      />
+    <div className="h-full w-full overflow-hidden bg-gray-950">
+      {/* CSS keyframe background drifts (rose/violet) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
+        <div
+          className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.primary}1f`,
+            left: '20%',
+            top: '15%',
+            animation: 'bg-drift-1 18s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.secondary}14`,
+            right: '15%',
+            bottom: '20%',
+            animation: 'bg-drift-2 22s ease-in-out infinite',
+          }}
+        />
+      </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-20">
-        {/* Title */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Title — ai-breathe on main heading */}
         <motion.div
-          className="mb-20 text-center"
+          className="mb-8 text-center"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }}
+          transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           <h1
-            className="text-5xl md:text-7xl font-black tracking-tight uppercase"
+            className="text-3xl md:text-5xl font-black tracking-tight uppercase"
             style={{
               background: `linear-gradient(135deg, ${palette.primary}, ${palette.glow}, ${palette.secondary})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              ...breatheStyle(0),
+              transform: 'translateZ(40px)',
             }}
           >
             Manifesto
           </h1>
           <motion.div
-            className="mx-auto mt-6"
+            className="mx-auto mt-4"
             style={{
               width: '120px',
               height: '3px',
@@ -73,8 +85,8 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
           />
         </motion.div>
 
-        {/* Sections */}
-        <div className="space-y-24">
+        {/* Sections — reduced spacing, ai-reveal */}
+        <div className="space-y-6">
           {sections.map((section, i) => {
             const alignRight = mirror ? i % 2 === 0 : i % 2 !== 0;
 
@@ -82,43 +94,49 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
               <motion.section
                 key={i}
                 className={`${alignRight ? 'text-right' : 'text-left'}`}
+                style={{ ...revealStyle(i), borderRadius: organicRadius }}
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.9,
-                  delay: baseDelay + 0.3 + 0.25 * i,
-                  ease: [0.22, 1, 0.36, 1] as const,
+                  ...SPRING_ENTER,
+                  delay: baseDelay + 0.3 + 0.12 * i,
                 }}
               >
-                {/* Section label */}
+                {/* Section label — ai-breathe on section headings */}
                 <motion.span
-                  className="inline-block text-xs font-mono tracking-[0.4em] uppercase mb-6 px-4 py-1.5 rounded-full border"
+                  className="inline-block text-xs font-mono tracking-[0.4em] uppercase mb-3 px-4 py-1.5 border"
                   style={{
                     color: palette.glow,
                     borderColor: `${palette.primary}30`,
                     backgroundColor: `${palette.primary}08`,
+                    borderRadius: organicRadius,
+                    ...breatheStyle(i + 1),
+                    transform: 'translateZ(25px)',
                   }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.25 * i + 0.15 }}
+                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.15 }}
                 >
                   {section.label}
                 </motion.span>
 
-                {/* Large bold text */}
+                {/* Text — reduced from 4xl to 2xl */}
                 <motion.p
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-snug max-w-3xl"
-                  style={{ marginLeft: alignRight ? 'auto' : '0' }}
+                  className="text-lg md:text-xl lg:text-2xl font-bold text-white leading-snug max-w-3xl"
+                  style={{
+                    marginLeft: alignRight ? 'auto' : '0',
+                    transform: 'translateZ(20px)',
+                  }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.25 * i + 0.25 }}
+                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.25 }}
                 >
                   {section.text}
                 </motion.p>
 
                 {/* Accent underline */}
                 <motion.div
-                  className="mt-6"
+                  className="mt-3"
                   style={{
                     width: '40px',
                     height: '2px',
@@ -127,7 +145,7 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
                   }}
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.25 * i + 0.35, duration: 0.5 }}
+                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.35, duration: 0.5 }}
                 />
               </motion.section>
             );
@@ -137,10 +155,11 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-24 pt-12 border-t border-gray-800 prose prose-invert prose-gray max-w-none"
+            className="mt-8 pt-6 border-t border-gray-800 prose prose-invert prose-gray max-w-none"
+            style={{ transform: 'translateZ(20px)' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: baseDelay + 0.3 + 0.25 * sections.length + 0.4 }}
+            transition={{ duration: 0.8, delay: baseDelay + 0.3 + 0.12 * sections.length + 0.4 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </motion.div>
