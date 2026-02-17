@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 /**
  * Terminal-aesthetic dot/cell matrix grid.
@@ -19,6 +19,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
   const allSkills = categories.flatMap((c: any) => c.skills ?? []);
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Limit displayed skills to fit in 1 viewport
   const MAX_SKILLS = 20;
@@ -38,13 +39,13 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
   let globalIdx = 0;
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-white">
       {/* CRT-like scanline overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-20 opacity-[0.03]"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)',
+            'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px)',
         }}
       />
 
@@ -67,33 +68,34 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
           className="flex-1 min-h-0 flex flex-col"
         >
           {/* Terminal title bar */}
-          <div className="flex items-center gap-2 rounded-t-lg border border-white/10 bg-white/5 px-4 py-1.5">
+          <div className="flex items-center gap-2 rounded-t-lg border border-gray-200 bg-gray-50/50 px-4 py-1.5">
             <div className="h-2 w-2 rounded-full bg-red-500/70" />
             <div className="h-2 w-2 rounded-full bg-yellow-500/70" />
             <div className="h-2 w-2 rounded-full bg-green-500/70" />
-            <span className="ml-3 font-mono text-[10px] text-gray-500">
+            <span className="ml-3 font-mono text-[10px] text-gray-800">
               skills --matrix --format=visual
             </span>
           </div>
 
           {/* Terminal body */}
-          <div className="flex-1 min-h-0 flex flex-col rounded-b-lg border border-t-0 border-white/10 bg-black/40 p-3 sm:p-4 backdrop-blur-sm">
+          <div className="flex-1 min-h-0 flex flex-col rounded-b-lg border border-t-0 border-gray-200 bg-white/40 p-3 sm:p-4 backdrop-blur-sm">
             {/* Header line */}
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
               className="mb-1 font-mono text-[10px]"
               style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
             >
               <span style={{ color: palette.glow }}>$</span>
-              <span className="text-gray-500"> loading skill matrix...</span>
+              <span className="text-gray-800"> loading skill matrix...</span>
+
             </motion.div>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.4, duration: 0.3 }}
-              className="mb-3 font-mono text-[10px] text-gray-600"
+              className="mb-3 font-mono text-[10px] text-gray-800"
             >
               -- {allSkills.length} skills across {categories.length} categories --
             </motion.div>
@@ -103,7 +105,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.5, duration: 0.3 }}
-              className={`mb-1.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-gray-600 ${mirror ? 'flex-row-reverse' : ''}`}
+              className={`mb-1.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-gray-800 ${mirror ? 'flex-row-reverse' : ''}`}
             >
               <span className={`${mirror ? 'text-right' : 'text-left'} w-28 shrink-0 sm:w-36`}>
                 SKILL
@@ -132,7 +134,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
             {/* Matrix rows grouped by category - reduced row height */}
             <div className="flex-1 min-h-0 overflow-hidden">
               {limitedCategories.map((category: any, catIdx: number) => {
-                const catDelay = baseDelay + 0.6 + catIdx * 0.1;
+                const catDelay = baseDelay + 0.6 + stagger * catIdx;
                 const skills = category.skills ?? [];
 
                 return (
@@ -142,7 +144,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: catDelay, duration: 0.3 }}
-                      className={`mb-1 font-mono text-[9px] font-bold uppercase tracking-widest ${mirror ? 'text-right' : 'text-left'}`}
+                      className={`mb-1 font-mono text-[9px] font-bold uppercase tracking-wide ${mirror ? 'text-right' : 'text-left'}`}
                       style={{ color: palette.glow + '80' }}
                     >
                       /* {category.name?.en ?? category.name?.ja ?? ''} */
@@ -151,21 +153,21 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
                     {/* Skill rows - compact */}
                     {skills.map((skill: any, skillIdx: number) => {
                       const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
-                      const rowDelay = catDelay + 0.05 + skillIdx * 0.06;
+                      const rowDelay = catDelay + 0.05 + stagger * skillIdx;
                       const currentIdx = globalIdx++;
 
                       return (
                         <motion.div
                           key={skillIdx}
-                          initial={{ opacity: 0, x: mirror ? 15 : -15 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ ...SPRING_ENTER, delay: rowDelay }}
-                          className={`group mb-0.5 flex items-center gap-1.5 rounded-sm px-1 py-0.5 font-mono transition-colors hover:bg-white/[0.03] ${mirror ? 'flex-row-reverse' : ''}`}
+                          className={`group mb-0.5 flex items-center gap-1.5 rounded-sm px-1 py-0.5 font-mono transition-colors hover:bg-gray-50 ${mirror ? 'flex-row-reverse' : ''}`}
                           style={{ ...revealStyle(currentIdx), transform: 'translateZ(15px)' }}
                         >
                           {/* Skill name */}
                           <span
-                            className={`w-28 shrink-0 truncate text-[11px] text-gray-400 transition-colors group-hover:text-gray-200 sm:w-36 ${mirror ? 'text-right' : 'text-left'}`}
+                            className={`w-28 shrink-0 truncate text-[11px] text-gray-800 transition-colors group-hover:text-gray-900 sm:w-36 ${mirror ? 'text-right' : 'text-left'}`}
                           >
                             {skill.name}
                           </span>
@@ -174,7 +176,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
                           <div className="flex flex-1 items-center gap-0.5">
                             {Array.from({ length: 5 }, (_, cellIdx) => {
                               const isActive = cellIdx < level;
-                              const cellDelay = rowDelay + 0.15 + cellIdx * 0.04;
+                              const cellDelay = rowDelay + 0.15 + stagger * cellIdx;
                               const intensity = isActive
                                 ? 0.4 + (cellIdx / 4) * 0.6
                                 : 0;
@@ -186,8 +188,8 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
                                   style={{
                                     backgroundColor: isActive
                                       ? `${palette.primary}${Math.round(intensity * 40).toString(16).padStart(2, '0')}`
-                                      : 'rgba(255,255,255,0.03)',
-                                    border: `1px solid ${isActive ? palette.primary + '30' : 'rgba(255,255,255,0.05)'}`,
+                                      : 'rgba(0,0,0,0.03)',
+                                    border: `1px solid ${isActive ? palette.primary + '30' : 'rgba(0,0,0,0.06)'}`,
                                     boxShadow: isActive
                                       ? `0 0 ${cellIdx * 4 + 4}px ${palette.glow}${Math.round(intensity * 30).toString(16).padStart(2, '0')}`
                                       : 'none',
@@ -199,7 +201,6 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
                                   whileHover={
                                     isActive
                                       ? {
-                                          boxShadow: `0 0 16px ${palette.glow}60`,
                                           scale: 1.1,
                                         }
                                       : {}
@@ -225,7 +226,7 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
 
                           {/* Years */}
                           <motion.span
-                            className="w-10 text-center font-mono text-[10px] text-gray-600"
+                            className="w-10 text-center font-mono text-[10px] text-gray-800"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: rowDelay + 0.4, duration: 0.3 }}
@@ -247,9 +248,9 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 1.2, duration: 0.4 }}
-              className="mt-2 border-t border-white/5 pt-2"
+              className="mt-2 border-t border-gray-200 pt-2"
             >
-              <div className="flex flex-wrap gap-3 font-mono text-[9px] text-gray-600">
+              <div className="flex flex-wrap gap-3 font-mono text-[9px] text-gray-800">
                 <span>
                   <span style={{ color: palette.glow }}>TOTAL:</span>{' '}
                   {allSkills.length} skills
@@ -294,13 +295,13 @@ export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: baseDelay + 1.5 }}
-            className="mt-3 border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+            className="mt-3 border border-gray-200 bg-white/50 p-4 backdrop-blur-sm"
             style={{ borderRadius: organicRadius }}
           >
-            <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
+            <div className="prose prose-sm max-w-none prose-p:text-gray-800 prose-strong:text-gray-900 prose-a:text-indigo-600">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
             </div>
           </motion.div>

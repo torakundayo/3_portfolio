@@ -5,19 +5,20 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Split commentary into paragraphs for magazine layout
   const paragraphs = (commentary || '').split('\n\n').filter((p) => p.trim());
   const pullQuote = paragraphs.length > 2 ? paragraphs[1] : paragraphs[0] || '';
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950 relative">
+    <div className="h-full w-full overflow-hidden bg-white relative">
       {/* CSS keyframe bg blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -47,12 +48,12 @@ export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
           <motion.div
             className={`${mirror ? 'md:col-start-6 md:col-span-7' : 'md:col-span-7'} overflow-hidden`}
             style={{ direction: 'ltr', transform: 'translateZ(15px)' }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
           >
             {/* Drop cap on first paragraph */}
-            <div className="prose prose-lg prose-invert max-w-none">
+            <div className="prose prose-lg max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
@@ -62,7 +63,7 @@ export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
                       const firstChar = children[0];
                       const rest = children.slice(1);
                       return (
-                        <p className="text-gray-300 leading-[1.85] mb-6" style={revealStyle(0)}>
+                        <p className="text-gray-800 leading-[1.85] mb-6" style={revealStyle(0)}>
                           <span
                             className="float-left text-6xl font-bold leading-[0.8] mr-3 mt-1"
                             style={{ color: palette.primary }}
@@ -74,14 +75,14 @@ export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
                       );
                     }
                     return (
-                      <p className="text-gray-300 leading-[1.85] mb-6" style={revealStyle(1)}>
+                      <p className="text-gray-800 leading-[1.85] mb-6" style={revealStyle(1)}>
                         {children}
                       </p>
                     );
                   },
                   h1: ({ children }) => (
                     <h1
-                      className="text-gray-100"
+                      className="text-gray-900"
                       style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                     >
                       {children}
@@ -89,7 +90,7 @@ export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
                   ),
                   h2: ({ children }) => (
                     <h2
-                      className="text-gray-100"
+                      className="text-gray-900"
                       style={{ ...breatheStyle(1), transform: 'translateZ(40px)' }}
                     >
                       {children}
@@ -106,8 +107,8 @@ export function TextMagazineLayout({ commentary, visualSeed }: TemplateProps) {
           <motion.div
             className={`${mirror ? 'md:col-start-1 md:col-span-4' : 'md:col-start-9 md:col-span-4'}`}
             style={{ direction: 'ltr', transform: 'translateZ(30px)' }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.4 }}
           >
             {/* Pull quote */}

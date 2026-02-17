@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Send } from 'lucide-react';
+import { Send, Mic } from 'lucide-react';
 import type { InputPosition, InputStyle } from '@/lib/types';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 
 const positionStyles: Record<InputPosition, string> = {
   'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg',
@@ -14,40 +15,57 @@ const positionStyles: Record<InputPosition, string> = {
 };
 
 const buttonStyleClasses: Record<InputStyle, string> = {
-  'minimal': 'bg-gray-900 text-white hover:bg-gray-800',
-  'glass': 'bg-white/[0.08] text-white hover:bg-white/[0.15]',
-  'dark-glass': 'bg-white/[0.06] text-white hover:bg-white/[0.12]',
-  'transparent': 'bg-white/10 text-white hover:bg-white/20',
+  'minimal': 'bg-gray-100 text-gray-800 hover:bg-gray-200',
+  'glass': 'bg-gray-100/80 text-gray-800 hover:bg-gray-200/80',
+  'dark-glass': 'bg-gray-100/80 text-gray-800 hover:bg-gray-200/80',
+  'transparent': 'bg-gray-100/60 text-gray-800 hover:bg-gray-200/60',
+  'ghost': 'text-gray-600 hover:text-gray-900',
 };
 
-const SUGGEST_KEYWORDS = ['スキル', '経歴', 'プロジェクト', '連絡先'];
+const DEFAULT_SUGGEST_KEYWORDS = ['スキル', '経歴', 'プロジェクト', '連絡先'];
 
-const WELCOME_SUGGESTIONS = [
-  { label: 'スキルを見る', query: 'どんなスキルがありますか？' },
-  { label: '開発実績', query: 'プロジェクトを見せて' },
-  { label: '経歴', query: '経歴を教えて' },
-  { label: 'このサイトの仕組み', query: 'このサイトはどういう仕組みですか？' },
-];
 
 interface FloatingInputProps {
   position: InputPosition;
   style: InputStyle;
   sendMessage: (message: { text: string }) => void;
   isLoading: boolean;
+  /** Dynamic keyword suggestions from behavior observer */
+  suggestedKeywords?: string[];
+  /** Callback to report focus-without-typing state */
+  onFocusIdleChange?: (isFocusedEmpty: boolean) => void;
+  /** Cursor is moving fast — user is searching */
+  isSearching?: boolean;
 }
 
-export function FloatingInput({ position, style, sendMessage, isLoading }: FloatingInputProps) {
+export function FloatingInput({
+  position, style, sendMessage, isLoading,
+  suggestedKeywords, onFocusIdleChange, isSearching = false,
+}: FloatingInputProps) {
   const [input, setInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [positionTransitioning, setPositionTransitioning] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const suggestTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const prevPositionRef = useRef(position);
 
   const isTyping = input.length > 0;
   const isMinimal = style === 'minimal';
-  const hasGlow = style === 'glass' || style === 'dark-glass';
+  const isGhost = style === 'ghost';
+  const hasGlow = (style === 'glass' || style === 'dark-glass') && !isGhost;
   const isCenter = position === 'center';
+
+  // ── Voice input ──
+  const handleVoiceTranscript = useCallback((text: string) => {
+    setInput(text);
+  }, []);
+  const { isSupported: voiceSupported, isListening, startListening, stopListening } =
+    useVoiceInput(handleVoiceTranscript);
+  const toggleVoice = useCallback(() => {
+    if (isListening) stopListening(); else startListening();
+  }, [isListening, startListening, stopListening]);
 
   // ── Cursor proximity sensing (pre-focus glow) ──
   const cursorProximity = useMotionValue(0);
@@ -70,19 +88,6 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
     return () => window.removeEventListener('mousemove', measureProximity);
   }, [hasGlow, measureProximity]);
 
-  // Proactive welcome suggestions: show after brief entry delay when in center (welcome) mode
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
-
-  useEffect(() => {
-    if (isCenter && !isTyping && !welcomeDismissed) {
-      const t = setTimeout(() => setShowWelcome(true), 1500);
-      return () => clearTimeout(t);
-    } else {
-      setShowWelcome(false);
-    }
-  }, [isCenter, isTyping, welcomeDismissed]);
-
   // Detect focus without typing → show suggestions after 3s (non-welcome state)
   useEffect(() => {
     if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
@@ -98,39 +103,54 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
     };
   }, [isFocused, isTyping, isCenter]);
 
+  // Report focus-without-typing state to behavior observer
+  useEffect(() => {
+    onFocusIdleChange?.(isFocused && !isTyping);
+  }, [isFocused, isTyping, onFocusIdleChange]);
+
+  // T-020: Fade out → reposition → fade in when position changes (no y-axis movement)
+  useEffect(() => {
+    if (prevPositionRef.current !== position) {
+      prevPositionRef.current = position;
+      setPositionTransitioning(true);
+      const timer = setTimeout(() => setPositionTransitioning(false), 280);
+      return () => clearTimeout(timer);
+    }
+  }, [position]);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || positionTransitioning) return;
+    if (isListening) stopListening();
     sendMessage({ text: input.trim() });
     setInput('');
     setShowSuggestions(false);
-    setWelcomeDismissed(true);
   };
 
   const handleSuggestClick = (keyword: string) => {
     sendMessage({ text: keyword });
     setInput('');
     setShowSuggestions(false);
-    setWelcomeDismissed(true);
   };
 
   const glowDuration = isTyping ? 1.5 : 4;
-  // Base glow: focus > center-idle > default
-  const baseGlow = isFocused ? 0.6 : isCenter ? 0.4 : 0.25;
+  // Base glow: focus > searching > center-idle > default
+  const baseGlow = isFocused ? 0.6 : isSearching ? 0.5 : isCenter ? 0.4 : 0.25;
   // Proximity adds up to 0.25 extra glow (only when not focused — focus already has max)
   const proxGlowBoost = useTransform(smoothProximity, [0, 1], [0, isFocused ? 0 : 0.25]);
   const glowOpacity = useTransform(proxGlowBoost, (boost) => baseGlow + boost);
   // Proximity-driven halo intensity for center state
   const haloOpacity = useTransform(smoothProximity, [0, 0.5, 1], [1, 1.3, 1.8]);
 
+  // Disable input during position transition to prevent inconsistency
+  const inputDisabled = isLoading || positionTransitioning;
+
   return (
     <motion.div
       ref={containerRef}
-      layout
-      transition={{
-        layout: { type: 'spring', stiffness: 300, damping: 30, mass: 1 },
-      }}
-      className={`absolute z-50 px-4 pointer-events-auto ${positionStyles[position]}`}
+      animate={{ opacity: positionTransitioning ? 0 : 1 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
+      className={`absolute px-4 pointer-events-auto ${positionStyles[position]}`}
     >
       {/* Ambient glow halo behind input in center (welcome) state */}
       {isCenter && hasGlow && (
@@ -144,7 +164,7 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
           <div
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[200px] rounded-full blur-3xl"
             style={{
-              background: 'radial-gradient(ellipse, rgba(139,92,246,0.12) 0%, rgba(6,182,212,0.06) 50%, transparent 70%)',
+              background: 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, rgba(6,182,212,0.04) 50%, transparent 70%)',
               animation: 'ai-breathe 6s ease-in-out infinite',
             }}
           />
@@ -165,26 +185,34 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
               <div
                 className="absolute inset-0"
                 style={{
-                  background: 'conic-gradient(from var(--glow-angle), rgba(139,92,246,0.4), rgba(6,182,212,0.4), rgba(139,92,246,0.1), rgba(6,182,212,0.4), rgba(139,92,246,0.4))',
-                  animation: `glow-rotate ${glowDuration}s linear infinite`,
+                  background: isListening
+                    ? 'conic-gradient(from var(--glow-angle), rgba(239,68,68,0.35), rgba(251,146,60,0.25), rgba(239,68,68,0.1), rgba(251,146,60,0.25), rgba(239,68,68,0.35))'
+                    : 'conic-gradient(from var(--glow-angle), rgba(139,92,246,0.25), rgba(6,182,212,0.25), rgba(139,92,246,0.06), rgba(6,182,212,0.25), rgba(139,92,246,0.25))',
+                  animation: `glow-rotate ${isListening ? 1.2 : glowDuration}s linear infinite`,
                 }}
               />
-              <div className="absolute inset-[1px] rounded-[15px] bg-gray-950/90 backdrop-blur-xl" />
+              <div className="absolute inset-[1px] rounded-[15px] bg-white/95 backdrop-blur-xl" />
             </motion.div>
           )}
 
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className={`relative flex items-center transition-colors duration-300 ${
-              isMinimal
-                ? `bg-white rounded-xl border border-black/15 ${isFocused ? 'border-black/30' : ''}`
-                : `rounded-2xl backdrop-blur-xl border border-white/[0.08] ${
-                    isFocused ? 'border-white/[0.15]' : ''
+            className={`relative flex items-center transition-all duration-300 ${
+              isGhost
+                ? `bg-transparent text-gray-900 placeholder:text-gray-400 ${
+                    isFocused || isTyping
+                      ? 'bg-white/60 backdrop-blur-sm rounded-xl border border-gray-300/50'
+                      : 'border-b border-gray-400/50'
+                  }`
+                : isMinimal
+                ? `bg-white rounded-xl border border-gray-200 ${isFocused ? 'border-gray-400' : ''}`
+                : `rounded-2xl backdrop-blur-xl border border-gray-200/60 ${
+                    isFocused ? 'border-gray-300' : ''
                   } ${
-                    style === 'glass' ? 'bg-white/[0.06] text-white placeholder:text-white/40' :
-                    style === 'dark-glass' ? 'bg-black/30 text-white placeholder:text-white/40' :
-                    'bg-transparent border-b border-white/30 text-white placeholder:text-white/40 rounded-none'
+                    style === 'glass' ? 'bg-white/80 text-gray-900 placeholder:text-gray-400' :
+                    style === 'dark-glass' ? 'bg-white/80 text-gray-900 placeholder:text-gray-400' :
+                    'bg-transparent border-b border-gray-300 text-gray-900 placeholder:text-gray-400 rounded-none'
                   }`
             }`}
           >
@@ -196,114 +224,132 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
                 // Delay blur to allow suggestion click
                 setTimeout(() => setIsFocused(false), 150);
               }}
-              placeholder="何でも聞いてください..."
-              disabled={isLoading}
+              placeholder={isListening ? '聞いています...' : 'AIに質問する...'}
+              disabled={inputDisabled}
               aria-label="AIに質問する"
               className={`flex-1 bg-transparent outline-none text-sm ${
-                isMinimal ? 'px-5 py-3 text-gray-900 placeholder:text-gray-400' : 'px-5 py-3.5'
+                isMinimal ? 'px-5 py-3 text-gray-900 placeholder:text-gray-400' : 'px-5 py-3.5 text-gray-900 placeholder:text-gray-400'
               }`}
             />
 
-            {/* Minimal: no button, just a subtle Enter hint */}
-            {isMinimal ? (
+            {/* Minimal/Ghost: no button, just a subtle Enter hint */}
+            {(isMinimal || isGhost) ? (
               <AnimatePresence>
                 {isTyping && (
                   <motion.span
-                    initial={{ opacity: 0, x: 4 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 4 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="text-black/20 text-xs mr-4 select-none"
+                    className="text-gray-400 text-xs mr-4 select-none"
                   >
                     ↵
                   </motion.span>
                 )}
               </AnimatePresence>
             ) : (
-              <motion.button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                aria-label="送信"
-                className={`mx-1 my-1 px-4 py-2.5 rounded-xl transition-all duration-200
-                            disabled:opacity-20 disabled:cursor-not-allowed
-                            ${buttonStyleClasses[style]}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Send size={15} />
-              </motion.button>
+              <div className="flex items-center gap-0.5">
+                {/* Voice input button */}
+                {voiceSupported && (
+                  <motion.button
+                    type="button"
+                    onClick={toggleVoice}
+                    disabled={inputDisabled}
+                    aria-label={isListening ? '音声入力を停止' : '音声で入力'}
+                    className={`relative mx-0.5 my-1 p-2.5 rounded-xl transition-all duration-200
+                                disabled:opacity-20 disabled:cursor-not-allowed
+                                ${isListening ? 'text-red-400' : buttonStyleClasses[style]}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={isListening ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                    transition={isListening
+                      ? { scale: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } }
+                      : { duration: 0.2 }
+                    }
+                  >
+                    <Mic size={15} />
+                    {/* Recording indicator dot */}
+                    <AnimatePresence>
+                      {isListening && (
+                        <motion.div
+                          className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: [1, 0.4, 1], scale: 1 }}
+                          exit={{ opacity: 0, scale: 0 }}
+                          transition={{
+                            opacity: { duration: 1, repeat: Infinity, ease: 'easeInOut' },
+                            scale: { duration: 0.2 },
+                          }}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                )}
+
+                {/* Send button */}
+                <motion.button
+                  type="submit"
+                  disabled={inputDisabled || !input.trim()}
+                  aria-label="送信"
+                  className={`mx-0.5 my-1 px-4 py-2.5 rounded-xl transition-all duration-200
+                              disabled:opacity-20 disabled:cursor-not-allowed
+                              ${buttonStyleClasses[style]}`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Send size={15} />
+                </motion.button>
+              </div>
             )}
           </form>
 
-          {/* Welcome proactive suggestions: shown immediately in center mode */}
+          {/* Suggestion keywords: radial layout above input */}
           <AnimatePresence>
-            {showWelcome && (
-              <motion.div
-                className="mt-4 flex flex-col items-center gap-3"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
-              >
-                <motion.p
-                  className="text-white/30 text-[11px] tracking-wider"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                  例えば、こんなことが聞けます
-                </motion.p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {WELCOME_SUGGESTIONS.map((s, i) => (
-                    <motion.button
-                      key={s.label}
-                      type="button"
-                      onClick={() => handleSuggestClick(s.query)}
-                      className="px-3.5 py-1.5 rounded-full text-[12px] text-white/50
-                                 bg-white/[0.05] border border-white/[0.08]
-                                 hover:text-white/80 hover:bg-white/[0.10] hover:border-white/[0.15]
-                                 transition-all duration-300 cursor-pointer select-none"
-                      initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 0.3 + i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {s.label}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {showSuggestions && (() => {
+              const kws = suggestedKeywords ?? DEFAULT_SUGGEST_KEYWORDS;
+              const count = kws.length;
+              // Fan out in a gentle arc above the input
+              const arcSpread = Math.min(Math.PI * 0.7, 0.3 + count * 0.12);
+              const radius = 60 + count * 8; // px from center
 
-          {/* Suggestion keywords: appear when focused but not typing (non-welcome) */}
-          <AnimatePresence>
-            {showSuggestions && (
-              <motion.div
-                className="flex justify-center gap-3 mt-3"
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
-              >
-                {SUGGEST_KEYWORDS.map((kw, i) => (
-                  <motion.button
-                    key={kw}
-                    type="button"
-                    onClick={() => handleSuggestClick(kw)}
-                    className="text-white/25 hover:text-white/60 text-[11px] tracking-wider
-                               transition-colors duration-300 cursor-pointer select-none"
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.08, duration: 0.4 }}
-                    whileHover={{ scale: 1.08 }}
-                  >
-                    {kw}
-                  </motion.button>
-                ))}
-              </motion.div>
-            )}
+              return (
+                <div className="absolute left-1/2 bottom-full mb-2 pointer-events-none"
+                     style={{ width: 0, height: 0 }}>
+                  {kws.map((kw, i) => {
+                    const angle = -Math.PI / 2 + (i - (count - 1) / 2) * (arcSpread / Math.max(count - 1, 1));
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+
+                    return (
+                      <motion.button
+                        key={kw}
+                        type="button"
+                        onClick={() => handleSuggestClick(kw)}
+                        className="absolute pointer-events-auto text-gray-800 hover:text-gray-900
+                                   text-sm font-medium cursor-pointer select-none whitespace-nowrap
+                                   transition-colors duration-200"
+                        style={{
+                          left: x,
+                          top: y,
+                          transform: 'translate(-50%, -50%)',
+                        }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{
+                          delay: i * 0.06,
+                          duration: 0.5,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        whileHover={{ scale: 1.12 }}
+                      >
+                        {kw}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </AnimatePresence>
         </div>
     </motion.div>

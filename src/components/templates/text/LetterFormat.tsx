@@ -5,11 +5,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   return (
     <div className="h-full w-full overflow-hidden flex items-center justify-center bg-gray-100/50 relative">
@@ -33,8 +34,8 @@ export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
 
       <motion.div
         className="max-w-2xl w-full mx-6 relative z-10"
-        initial={{ opacity: 0, y: 30, rotateX: 2 }}
-        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        initial={{ opacity: 0, rotateX: 2 }}
+        animate={{ opacity: 1, rotateX: 0 }}
         transition={{ ...SPRING_ENTER, delay: baseDelay }}
       >
         {/* Paper card with organic radius */}
@@ -57,7 +58,7 @@ export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
             transition={{ delay: baseDelay + 0.2, duration: 0.5 }}
             style={{ transform: 'translateZ(-20px)' }}
           >
-            <span className="text-sm text-gray-400 italic">
+            <span className="text-sm text-gray-800 italic">
               {new Date().toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -68,7 +69,7 @@ export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
 
           {/* Greeting */}
           <motion.p
-            className="text-lg text-gray-700 mb-6"
+            className="text-lg text-gray-800 mb-6"
             style={{
               fontFamily: 'Georgia, "Noto Serif JP", serif',
               ...breatheStyle(0),
@@ -83,7 +84,7 @@ export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
 
           {/* Letter body - clamped to 6 lines */}
           <motion.div
-            className="prose prose-gray max-w-none prose-p:leading-[1.9] prose-p:mb-4 prose-p:text-gray-600 line-clamp-6"
+            className="prose prose-gray max-w-none prose-p:leading-[1.9] prose-p:mb-4 prose-p:text-gray-800 line-clamp-6"
             style={{
               fontFamily: 'Georgia, "Noto Serif JP", serif',
               transform: 'translateZ(15px)',
@@ -124,7 +125,7 @@ export function TextLetterFormat({ commentary, visualSeed }: TemplateProps) {
             style={{ transform: 'translateZ(15px)' }}
           >
             <p
-              className="text-base text-gray-500 italic"
+              className="text-base text-gray-800 italic"
               style={{ fontFamily: 'Georgia, "Noto Serif JP", serif' }}
             >
               Sincerely,

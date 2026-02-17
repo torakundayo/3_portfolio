@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -24,9 +24,10 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
   const gradientAngle = 135 + visualSeed.colorOffset * 0.25;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden bg-zinc-950">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-white">
       {/* CSS keyframe background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -41,12 +42,12 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
         {/* Commentary section */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const } }}
             className="px-8 pt-6 pb-2 flex-shrink-0"
           >
-            <div className="max-w-2xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white max-w-none">
+            <div className="max-w-2xl mx-auto prose prose-sm prose-p:text-gray-800 prose-strong:text-gray-900 max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {commentary}
               </ReactMarkdown>
@@ -62,18 +63,17 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
             return (
               <motion.div
                 key={project.name}
-                initial={{ opacity: 0, x: 120, rotateY: -8 }}
-                animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{
-                  opacity: { duration: 0.7, delay: baseDelay + 0.15 * i, ease: [0.22, 1, 0.36, 1] as const },
-                  x: { ...SPRING_ENTER, delay: i * 0.12 },
-                  rotateY: { ...SPRING_ENTER, delay: i * 0.12 },
+                  opacity: { duration: 0.7, delay: baseDelay + stagger * i, ease: [0.22, 1, 0.36, 1] as const },
+                  scale: { ...SPRING_ENTER, delay: stagger * i },
                 }}
                 className="flex-shrink-0 w-[320px] snap-center group"
                 style={{ ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
               >
                 <div
-                  className="relative h-[360px] border border-white/10 backdrop-blur-xl bg-white/5 p-5 flex flex-col overflow-hidden transition-all duration-500 hover:border-white/20"
+                  className="relative h-[360px] border border-gray-200 backdrop-blur-xl bg-gray-50/5 p-5 flex flex-col overflow-hidden transition-all duration-500 hover:border-gray-200"
                   style={{
                     borderRadius: organicRadius,
                     boxShadow: `0 0 0 1px ${palette.primary}10`,
@@ -87,7 +87,7 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                     }}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
-                    transition={{ ...SPRING_ENTER, delay: baseDelay + 0.15 * i + 0.3 }}
+                    transition={{ ...SPRING_ENTER, delay: baseDelay + stagger * i + 0.3 }}
                   />
 
                   {/* Hover glow effect */}
@@ -131,7 +131,7 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
 
                   {/* Name */}
                   <h3
-                    className="text-xl font-bold text-white mb-1 tracking-tight"
+                    className="text-xl font-bold text-gray-900 mb-1 tracking-tight"
                     style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                   >
                     {project.name}
@@ -139,7 +139,7 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
 
                   {/* Tagline */}
                   {tagline && (
-                    <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+                    <p className="text-sm text-gray-800 mb-3 line-clamp-2">
                       {tagline}
                     </p>
                   )}
@@ -150,7 +150,7 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                       {project.stack.map((tech) => (
                         <span
                           key={tech}
-                          className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white/5 text-zinc-400 border border-white/5"
+                          className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-50 text-gray-800 border border-gray-200"
                         >
                           {tech}
                         </span>
@@ -176,7 +176,7 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
                         href={project.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors duration-300 hover:underline"
+                        className="text-xs font-medium text-gray-800 hover:text-gray-900 transition-colors duration-300 hover:underline"
                       >
                         GitHub
                       </a>
@@ -196,16 +196,13 @@ export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: Templ
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: baseDelay + projects.length * 0.15 + 0.5, duration: 0.5 }}
-            className="absolute bottom-4 right-8 flex items-center gap-2 text-zinc-600 text-xs"
+            transition={{ delay: baseDelay + projects.length * stagger + 0.5, duration: 0.5 }}
+            className="absolute bottom-4 right-8 flex items-center gap-2 text-gray-800 text-xs"
           >
             <span>scroll</span>
-            <motion.span
-              animate={{ x: [0, 6, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-            >
+            <span>
               &rarr;
-            </motion.span>
+            </span>
           </motion.div>
         )}
       </div>

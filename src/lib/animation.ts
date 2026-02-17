@@ -47,3 +47,31 @@ export function driftStyle(index: number): CSSProperties {
     animationDelay: `${index * 0.8}s`,
   };
 }
+
+/* ═══ Layout variant classifier (T-021) ═══ */
+export type LayoutVariant = 'A' | 'B' | 'C';
+
+export function getLayoutVariant(layoutVariant: number): LayoutVariant {
+  if (layoutVariant < 0.33) return 'A';
+  if (layoutVariant < 0.66) return 'B';
+  return 'C';
+}
+
+/* ═══ Seed-based stagger for entry animations (T-022) ═══ */
+export function seededStagger(seed: number) {
+  const r = seededRandom(Math.round(seed * 1000));
+  const stagger = 0.10 + r() * 0.10; // 0.10–0.20s
+  const reverse = r() > 0.5;
+  return { stagger, reverse };
+}
+
+/* ═══ Seed-based decoration offset (T-022) ═══ */
+export function seededDecoration(seed: number, index: number) {
+  const r = seededRandom(Math.round(seed * 1000) + index * 37);
+  return {
+    angle: r() * 360,
+    offsetX: r() * 30 - 15,
+    offsetY: r() * 20 - 10,
+    gridSize: 50 + Math.round(r() * 30),
+  };
+}

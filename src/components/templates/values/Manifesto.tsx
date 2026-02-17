@@ -5,13 +5,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const sections = [
     {
@@ -29,7 +30,7 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
   ].filter((s) => s.text);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-white">
       {/* CSS keyframe background drifts (rose/violet) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div
@@ -56,8 +57,8 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
         {/* Title — ai-breathe on main heading */}
         <motion.div
           className="mb-8 text-center"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           <h1
@@ -95,11 +96,11 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
                 key={i}
                 className={`${alignRight ? 'text-right' : 'text-left'}`}
                 style={{ ...revealStyle(i), borderRadius: organicRadius }}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{
                   ...SPRING_ENTER,
-                  delay: baseDelay + 0.3 + 0.12 * i,
+                  delay: baseDelay + 0.3 + stagger * i,
                 }}
               >
                 {/* Section label — ai-breathe on section headings */}
@@ -115,21 +116,21 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
                   }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.15 }}
+                  transition={{ delay: baseDelay + 0.3 + stagger * i + 0.15 }}
                 >
                   {section.label}
                 </motion.span>
 
                 {/* Text — reduced from 4xl to 2xl */}
                 <motion.p
-                  className="text-lg md:text-xl lg:text-2xl font-bold text-white leading-snug max-w-3xl"
+                  className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-snug max-w-3xl"
                   style={{
                     marginLeft: alignRight ? 'auto' : '0',
                     transform: 'translateZ(20px)',
                   }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.25 }}
+                  transition={{ delay: baseDelay + 0.3 + stagger * i + 0.25 }}
                 >
                   {section.text}
                 </motion.p>
@@ -145,7 +146,7 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
                   }}
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ delay: baseDelay + 0.3 + 0.12 * i + 0.35, duration: 0.5 }}
+                  transition={{ delay: baseDelay + 0.3 + stagger * i + 0.35, duration: 0.5 }}
                 />
               </motion.section>
             );
@@ -155,11 +156,11 @@ export function ValuesManifesto({ data, commentary, visualSeed }: TemplateProps)
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-8 pt-6 border-t border-gray-800 prose prose-invert prose-gray max-w-none"
+            className="mt-8 pt-6 border-t border-gray-200 prose prose-gray max-w-none"
             style={{ transform: 'translateZ(20px)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: baseDelay + 0.3 + 0.12 * sections.length + 0.4 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: baseDelay + 0.3 + stagger * sections.length + 0.4 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </motion.div>

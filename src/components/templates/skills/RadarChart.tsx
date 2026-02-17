@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 /**
  * CSS/SVG-only radar chart -- no external chart libraries.
@@ -19,6 +19,7 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
   const allSkills = categories.flatMap((c: any) => c.skills ?? []);
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Take up to 12 skills for a readable radar
   const skills = allSkills.slice(0, 12);
@@ -101,14 +102,14 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
 
   if (n === 0) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-gray-950 text-gray-500">
+      <div className="h-full w-full flex items-center justify-center bg-gray-950 text-gray-700">
         No skill data available
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -122,10 +123,10 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 py-8 lg:py-10 h-full">
         {/* Title */}
         <motion.h2
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
-          className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
           style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
         >
           <span
@@ -167,11 +168,11 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
                 key={`ring-${i}`}
                 points={points}
                 fill="none"
-                stroke="rgba(255,255,255,0.08)"
+                stroke="rgba(0,0,0,0.1)"
                 strokeWidth={i === levels - 1 ? 1.5 : 0.8}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: baseDelay + 0.2 + i * 0.06, duration: 0.4 }}
+                transition={{ delay: baseDelay + 0.2 + stagger * i, duration: 0.4 }}
               />
             ))}
 
@@ -183,11 +184,11 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
                 y1={cy}
                 x2={line.x2}
                 y2={line.y2}
-                stroke="rgba(255,255,255,0.06)"
+                stroke="rgba(0,0,0,0.08)"
                 strokeWidth={0.8}
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ delay: baseDelay + 0.3 + i * 0.04, duration: 0.5 }}
+                transition={{ delay: baseDelay + 0.3 + stagger * i, duration: 0.5 }}
               />
             ))}
 
@@ -225,7 +226,7 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
                   filter="url(#glow)"
                   initial={{ r: 0, opacity: 0 }}
                   animate={{ r: 4, opacity: 1 }}
-                  transition={{ ...SPRING_ENTER, delay: baseDelay + 0.8 + i * 0.05 }}
+                  transition={{ ...SPRING_ENTER, delay: baseDelay + 0.8 + stagger * i }}
                 />
               );
             })}
@@ -241,11 +242,11 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
                   textAnchor={pos.anchor}
                   dominantBaseline={pos.baseline}
                   className="text-[11px] font-medium"
-                  fill="rgba(255,255,255,0.7)"
+                  fill="rgba(0,0,0,0.6)"
                   style={mirror ? { transform: `scaleX(-1)`, transformOrigin: `${pos.x}px ${pos.y}px` } : undefined}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: baseDelay + 1.0 + i * 0.05, duration: 0.4 }}
+                  transition={{ delay: baseDelay + 1.0 + stagger * i, duration: 0.4 }}
                 >
                   {skill.name}
                 </motion.text>
@@ -253,20 +254,20 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
             })}
 
             {/* Center dot */}
-            <circle cx={cx} cy={cy} r={2} fill="rgba(255,255,255,0.3)" />
+            <circle cx={cx} cy={cy} r={2} fill="rgba(0,0,0,0.2)" />
           </svg>
         </motion.div>
 
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: baseDelay + 1.4 }}
-            className="mt-4 w-full max-w-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            className="mt-4 w-full max-w-2xl border border-gray-200 bg-white/50 p-5 backdrop-blur-sm"
             style={{ borderRadius: organicRadius }}
           >
-            <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
+            <div className="prose prose-sm max-w-none prose-p:text-gray-800 prose-strong:text-gray-900 prose-a:text-indigo-600">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
             </div>
           </motion.div>

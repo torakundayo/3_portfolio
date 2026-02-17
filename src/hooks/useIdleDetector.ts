@@ -1,59 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+/**
+ * @deprecated Use `useBehaviorObserver` instead. This hook is kept for backward compatibility.
+ * The new hook provides all idle detection functionality plus cursor speed, dwell, and focus tracking.
+ */
 
-export type IdleStage = 'active' | 'nudge' | 'hint' | 'suggest';
+// Re-export IdleStage type from the new hook for backward compatibility
+export type { IdleStage } from './useBehaviorObserver';
 
-const STAGE_THRESHOLDS = {
-  nudge: 3000,    // 3s: strengthen input pulse
-  hint: 6000,     // 6s: show floating keyword nodes
-  suggest: 10000, // 10s: keywords start pulsing
-} as const;
+import { useBehaviorObserver } from './useBehaviorObserver';
 
 /**
- * Detects user idle state in stages.
- * Resets on mousemove, keydown, touchstart, or focus events.
- * Only active when `enabled` is true (e.g., welcome state).
+ * @deprecated Use `useBehaviorObserver` instead.
  */
 export function useIdleDetector(enabled: boolean) {
-  const [stage, setStage] = useState<IdleStage>('active');
-  const timerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const enabledRef = useRef(enabled);
-  enabledRef.current = enabled;
-
-  const resetTimers = useCallback(() => {
-    timerRef.current.forEach(clearTimeout);
-    timerRef.current = [];
-    setStage('active');
-
-    if (!enabledRef.current) return;
-
-    timerRef.current.push(
-      setTimeout(() => setStage('nudge'), STAGE_THRESHOLDS.nudge),
-      setTimeout(() => setStage('hint'), STAGE_THRESHOLDS.hint),
-      setTimeout(() => setStage('suggest'), STAGE_THRESHOLDS.suggest),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) {
-      timerRef.current.forEach(clearTimeout);
-      timerRef.current = [];
-      setStage('active');
-      return;
-    }
-
-    resetTimers();
-
-    const events = ['mousemove', 'keydown', 'touchstart', 'pointerdown'] as const;
-    events.forEach(e => window.addEventListener(e, resetTimers, { passive: true }));
-
-    return () => {
-      timerRef.current.forEach(clearTimeout);
-      timerRef.current = [];
-      events.forEach(e => window.removeEventListener(e, resetTimers));
-    };
-  }, [enabled, resetTimers]);
-
-  return stage;
+  const behavior = useBehaviorObserver({
+    scope: enabled ? 'welcome' : 'template',
+  });
+  return behavior.idleStage;
 }

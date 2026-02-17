@@ -5,16 +5,17 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const beliefs = d?.beliefs?.ja ?? d?.beliefs?.en ?? '';
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950 flex items-center justify-center">
+    <div className="h-full w-full overflow-hidden bg-white flex items-center justify-center">
       {/* CSS keyframe background drifts (rose/violet) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div
@@ -49,8 +50,8 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
           <motion.span
             className="absolute -top-12 -left-8 text-[100px] leading-none font-serif select-none pointer-events-none"
             style={{ color: `${palette.primary}25` }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
           >
             &ldquo;
@@ -60,8 +61,8 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
           <motion.span
             className="absolute -bottom-16 -right-8 text-[100px] leading-none font-serif select-none pointer-events-none"
             style={{ color: `${palette.primary}25` }}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.4 }}
           >
             &rdquo;
@@ -69,14 +70,14 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
 
           {/* Beliefs as quote — ai-breathe on main quote */}
           <motion.blockquote
-            className="relative text-2xl md:text-3xl lg:text-4xl font-light text-white leading-relaxed tracking-wide"
+            className="relative text-2xl md:text-3xl lg:text-4xl font-normal text-gray-800 leading-relaxed tracking-normal"
             style={{
               fontFamily: 'Georgia, "Times New Roman", serif',
               ...breatheStyle(0),
               transform: 'translateZ(40px)',
             }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.3 }}
           >
             {beliefs}
@@ -101,8 +102,8 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
           {d?.visionForFutureSaaS && (
             <motion.div
               style={{ ...revealStyle(0), transform: 'translateZ(20px)' }}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 0.7 }}
             >
               <p
@@ -111,7 +112,7 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
               >
                 Vision
               </p>
-              <p className="text-base text-gray-400 leading-relaxed max-w-xl mx-auto">
+              <p className="text-base text-gray-800 leading-relaxed max-w-xl mx-auto">
                 {d.visionForFutureSaaS?.ja ?? d.visionForFutureSaaS?.en ?? ''}
               </p>
             </motion.div>
@@ -120,8 +121,8 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
           {d?.workStyle && (
             <motion.div
               style={{ ...revealStyle(1), transform: 'translateZ(20px)' }}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 0.9 }}
             >
               <p
@@ -130,7 +131,7 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
               >
                 Work Style
               </p>
-              <p className="text-base text-gray-400 leading-relaxed max-w-xl mx-auto">
+              <p className="text-base text-gray-800 leading-relaxed max-w-xl mx-auto">
                 {d.workStyle?.ja ?? d.workStyle?.en ?? ''}
               </p>
             </motion.div>
@@ -140,10 +141,10 @@ export function ValuesQuoteCard({ data, commentary, visualSeed }: TemplateProps)
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-10 prose prose-invert prose-gray max-w-none text-left"
+            className="mt-10 prose prose-gray max-w-none text-left"
             style={{ transform: 'translateZ(20px)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: baseDelay + 1.1 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

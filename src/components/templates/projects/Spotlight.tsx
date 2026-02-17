@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -23,12 +23,13 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
   const projects: Project[] = projectsData?.projects ?? [];
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const featured = projects[0];
   const others = projects.slice(1);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-black flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col">
       {/* CSS keyframe background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -43,7 +44,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)',
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.6) 100%)',
         }}
       />
 
@@ -56,7 +57,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
             transition={{ duration: 1, delay: baseDelay }}
             className="mb-3 text-center flex-shrink-0"
           >
-            <div className="max-w-xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-500 prose-headings:text-white">
+            <div className="max-w-xl mx-auto prose prose-sm prose-p:text-gray-800">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {commentary}
               </ReactMarkdown>
@@ -67,18 +68,17 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
         {/* Featured project - compact card */}
         {featured && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{
               opacity: { duration: 0.9, delay: baseDelay + 0.2, ease: [0.22, 1, 0.36, 1] as const },
               scale: { ...SPRING_ENTER, delay: baseDelay + 0.2 },
-              y: { ...SPRING_ENTER, delay: baseDelay + 0.2 },
             }}
             className="relative mb-4 group flex-shrink-0"
             style={{ ...revealStyle(0), ...cardFloatStyle(0), transform: 'translateZ(20px)' }}
           >
             <div
-              className="relative border border-white/10 backdrop-blur-xl bg-black/20 overflow-hidden"
+              className="relative border border-gray-200 backdrop-blur-xl bg-white/20 overflow-hidden"
               style={{
                 borderRadius: organicRadius,
                 boxShadow: `0 0 80px ${palette.primary}15, 0 0 30px ${palette.glow}08`,
@@ -114,9 +114,9 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                 <div className="flex-1 min-w-0">
                   {/* Featured badge */}
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ ...SPRING_ENTER, delay: baseDelay + 0.6 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ opacity: { duration: 0.5, delay: baseDelay + 0.6, ease: [0.22, 1, 0.36, 1] as const } }}
                     className="flex items-center gap-3 mb-1"
                   >
                     <span
@@ -130,7 +130,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                       Featured
                     </span>
                     {featured.year && (
-                      <span className="text-xs font-mono text-zinc-600">
+                      <span className="text-xs font-mono text-gray-800">
                         {featured.year}
                       </span>
                     )}
@@ -138,7 +138,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
 
                   {/* Name */}
                   <h2
-                    className="text-2xl sm:text-3xl font-black text-white mb-1 tracking-tight"
+                    className="text-2xl sm:text-3xl font-black text-gray-900 mb-1 tracking-tight"
                     style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                   >
                     {featured.name}
@@ -156,7 +156,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
 
                   {/* Description */}
                   {(featured.description?.en || featured.description?.ja) && (
-                    <p className="text-xs text-zinc-400 mb-3 max-w-2xl leading-relaxed line-clamp-2">
+                    <p className="text-sm text-gray-800 mb-3 max-w-2xl leading-relaxed line-clamp-2">
                       {featured.description?.en || featured.description?.ja}
                     </p>
                   )}
@@ -167,9 +167,9 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                       {featured.stack.map((tech, techIdx) => (
                         <motion.span
                           key={tech}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ opacity: { delay: baseDelay + 0.7 + techIdx * 0.05, duration: 0.4 }, y: { ...SPRING_ENTER, delay: baseDelay + 0.7 + techIdx * 0.05 } }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ opacity: { delay: baseDelay + 0.7 + stagger * techIdx, duration: 0.4 } }}
                           className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
                           style={{
                             color: `${palette.glow}bb`,
@@ -205,7 +205,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                         href={featured.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium px-4 py-1.5 rounded-lg border border-white/10 text-zinc-400 hover:text-white hover:border-white/25 transition-all duration-300"
+                        className="text-xs font-medium px-4 py-1.5 rounded-lg border border-gray-200 text-gray-800 hover:text-gray-900 hover:border-gray-200 transition-all duration-300"
                       >
                         Source Code
                       </a>
@@ -224,7 +224,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.8, duration: 0.5 }}
-              className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 mb-2 text-center"
+              className="text-[10px] uppercase tracking-[0.2em] text-gray-800 mb-2 text-center"
             >
               Other Projects
             </motion.p>
@@ -235,17 +235,16 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                 return (
                   <motion.div
                     key={project.name}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{
-                      opacity: { duration: 0.5, delay: baseDelay + 0.9 + i * 0.08, ease: [0.22, 1, 0.36, 1] as const },
-                      y: { ...SPRING_ENTER, delay: i * 0.12 },
+                      opacity: { duration: 0.5, delay: baseDelay + 0.9 + stagger * i, ease: [0.22, 1, 0.36, 1] as const },
                     }}
                     className="group"
                     style={revealStyle(i + 1)}
                   >
                     <div
-                      className="relative border border-white/5 backdrop-blur-xl bg-white/5 px-4 py-2.5 transition-all duration-500 hover:border-white/15 hover:bg-white/8 flex items-center gap-3"
+                      className="relative border border-gray-200 backdrop-blur-xl bg-gray-50/5 px-4 py-2.5 transition-all duration-500 hover:border-gray-200 hover:bg-gray-50/8 flex items-center gap-3"
                       style={{
                         borderRadius: organicRadius,
                       }}
@@ -271,12 +270,12 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                         />
                       </div>
 
-                      <h3 className="text-sm font-bold text-white tracking-tight whitespace-nowrap">
+                      <h3 className="text-sm font-bold text-gray-900 tracking-tight whitespace-nowrap">
                         {project.name}
                       </h3>
 
                       {tagline && (
-                        <p className="text-[10px] text-zinc-500 line-clamp-1 hidden sm:block max-w-[120px]">
+                        <p className="text-[10px] text-gray-800 line-clamp-1 hidden sm:block max-w-[120px]">
                           {tagline}
                         </p>
                       )}
@@ -298,7 +297,7 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                             href={project.github}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[10px] font-medium text-zinc-600 hover:text-zinc-400 transition-colors duration-300 hover:underline"
+                            className="text-[10px] font-medium text-gray-800 hover:text-gray-900 transition-colors duration-300 hover:underline"
                           >
                             GitHub
                           </a>

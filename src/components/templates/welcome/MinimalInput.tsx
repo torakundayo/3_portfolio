@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   motion,
   AnimatePresence,
@@ -9,8 +9,9 @@ import {
   useSpring,
 } from 'framer-motion';
 import type { TemplateProps } from '@/lib/types';
-import type { IdleStage } from '@/hooks/useIdleDetector';
+import type { IdleStage } from '@/hooks/useBehaviorObserver';
 import { seededRandom } from '@/lib/animation';
+import { accentPalettes } from '@/lib/visual-seed';
 
 interface WelcomeProps extends TemplateProps {
   idleStage?: IdleStage;
@@ -26,107 +27,89 @@ const KEYWORDS = [
   { label: 'Contact', query: '連絡先を教えて' },
 ];
 
-/* ── Keyword that senses cursor proximity ── */
-function ProximityKeyword({
+/* ── Floating keyword with cursor proximity and glow ── */
+function DriftingKeyword({
   kw,
-  pos,
+  path,
   mouseX,
   mouseY,
-  isSuggesting,
   onClick,
+  glowColor,
+  breathIndex,
 }: {
   kw: (typeof KEYWORDS)[number];
-  pos: { x: number; y: number; delay: number };
+  path: {
+    baseX: number; baseY: number;
+    entryDelay: number;
+  };
   mouseX: ReturnType<typeof useMotionValue<number>>;
   mouseY: ReturnType<typeof useMotionValue<number>>;
-  isSuggesting: boolean;
   onClick: () => void;
+  glowColor: string;
+  breathIndex: number;
 }) {
-  // Derive proximity factor (0–1) from cursor distance to this keyword
   const proximity = useTransform(
     [mouseX, mouseY],
     ([mx, my]: number[]) => {
       if (typeof window === 'undefined') return 0;
       const vmin = Math.min(window.innerWidth, window.innerHeight) / 100;
-      const kwX = window.innerWidth / 2 + pos.x * vmin;
-      const kwY = window.innerHeight / 2 + pos.y * vmin;
+      const kwX = window.innerWidth / 2 + path.baseX * vmin;
+      const kwY = window.innerHeight / 2 + path.baseY * vmin;
       const dist = Math.hypot(mx - kwX, my - kwY);
       return Math.max(0, 1 - dist / 220);
     },
   );
 
-  // Smooth the proximity for organic feel
   const smoothProx = useSpring(proximity, { stiffness: 80, damping: 20 });
-
-  // Proximity-driven visual effects
-  const proxScale = useTransform(smoothProx, [0, 1], [1, 1.18]);
-  const proxOpacity = useTransform(smoothProx, [0, 1], [0, 0.5]);
-  const proxTextBrightness = useTransform(
-    smoothProx,
-    [0, 0.3, 1],
-    [1, 1.2, 2.2],
-  );
+  const proxScale = useTransform(smoothProx, [0, 0.5, 1], [1, 1.05, 1.12]);
 
   return (
-    // Outer wrapper: proximity-driven scale (composites with inner animate)
     <motion.div
       className="absolute z-20"
-      style={{ left: '50%', top: '50%', scale: proxScale }}
+      style={{ left: '50%', top: '50%' }}
     >
       <motion.button
         onClick={onClick}
         className="pointer-events-auto select-none cursor-pointer
-                   text-white/30 text-xs tracking-widest uppercase
-                   font-light z-20 relative"
-        style={{ filter: useTransform(proxTextBrightness, (v) => `brightness(${v})`) }}
-        initial={{ opacity: 0, scale: 0.6, x: 0, y: 0 }}
-        animate={{
-          opacity: isSuggesting ? [0.3, 0.6, 0.3] : 0.3,
-          scale: 1,
-          x: `calc(${pos.x}vmin - 50%)`,
-          y: `calc(${pos.y}vmin - 50%)`,
-        }}
-        exit={{ opacity: 0, scale: 0.6 }}
-        transition={{
-          opacity: isSuggesting
-            ? { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: pos.delay }
-            : { duration: 1.2, delay: pos.delay },
-          scale: { type: 'spring', stiffness: 60, damping: 18, delay: pos.delay },
-          x: { type: 'spring', stiffness: 40, damping: 20, delay: pos.delay },
-          y: { type: 'spring', stiffness: 40, damping: 20, delay: pos.delay },
-        }}
-        whileHover={{
-          scale: 1.15,
-          opacity: 0.8,
-          transition: { duration: 0.3 },
-        }}
-      >
-        {kw.label}
-      </motion.button>
-
-      {/* Proximity glow behind keyword */}
-      <motion.div
-        className="absolute inset-0 -z-10 pointer-events-none"
+                   text-gray-700 text-base font-medium z-20 relative whitespace-nowrap
+                   hover:text-gray-900 transition-colors duration-200"
         style={{
-          opacity: proxOpacity,
-          x: `calc(${pos.x}vmin - 50%)`,
-          y: `calc(${pos.y}vmin - 50%)`,
+          scale: proxScale,
+        }}
+        initial={{ opacity: 0 }}
+        animate={{
+          opacity: 1,
+          x: `calc(${path.baseX}vmin - 50%)`,
+          y: `calc(${path.baseY}vmin - 50%)`,
+        }}
+        exit={{ opacity: 0, transition: { duration: 0.3 } }}
+        transition={{
+          opacity: { duration: 0.8, delay: path.entryDelay },
+          x: { type: 'spring', stiffness: 30, damping: 22, delay: path.entryDelay },
+          y: { type: 'spring', stiffness: 30, damping: 22, delay: path.entryDelay },
         }}
       >
-        <div
-          className="w-16 h-8 -ml-4 -mt-2 rounded-full blur-xl"
+        {/* Glow circle behind keyword */}
+        <span
+          className="absolute inset-0 -z-10 rounded-full blur-xl pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse, rgba(139,92,246,0.4), rgba(6,182,212,0.2), transparent)',
+            background: `radial-gradient(circle, ${glowColor}25, transparent 70%)`,
+            transform: 'scale(3)',
+            animation: `ai-breathe ${4 + breathIndex * 0.7}s ease-in-out infinite`,
+            animationDelay: `${breathIndex * 0.8}s`,
           }}
         />
-      </motion.div>
+        {kw.label}
+      </motion.button>
     </motion.div>
   );
 }
 
-export function WelcomeMinimalInput({ idleStage = 'active', onKeywordClick }: WelcomeProps) {
+export function WelcomeMinimalInput({ onKeywordClick, visualSeed }: WelcomeProps) {
+  const palette = accentPalettes[(visualSeed?.accentIndex ?? 0) % accentPalettes.length];
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const [showKeywords, setShowKeywords] = useState(false);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -137,36 +120,41 @@ export function WelcomeMinimalInput({ idleStage = 'active', onKeywordClick }: We
     return () => window.removeEventListener('mousemove', handler);
   }, [mouseX, mouseY]);
 
-  const positions = useMemo(() => {
+  // Show keywords after a short delay — always visible once shown
+  useEffect(() => {
+    const timer = setTimeout(() => setShowKeywords(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const paths = useMemo(() => {
     const r = seededRandom(77);
     return KEYWORDS.map((_, i) => {
-      const angle = (i / KEYWORDS.length) * Math.PI * 2 - Math.PI / 2;
-      const radius = 22 + r() * 4;
+      const baseAngle = (i / KEYWORDS.length) * Math.PI * 2 - Math.PI / 2;
+      const angleJitter = (r() - 0.5) * 0.4;
+      const angle = baseAngle + angleJitter;
+      const radius = 18 + r() * 10;
+
       return {
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius * 0.7,
-        floatDx: (r() - 0.5) * 8,
-        floatDy: (r() - 0.5) * 6,
-        delay: i * 0.12,
+        baseX: Math.cos(angle) * radius,
+        baseY: Math.sin(angle) * radius * 0.6,
+        entryDelay: 0.1 + i * 0.1,
       };
     });
   }, []);
-
-  const showKeywords = idleStage === 'hint' || idleStage === 'suggest';
-  const isSuggesting = idleStage === 'suggest';
 
   return (
     <div className="h-full w-full relative">
       <AnimatePresence>
         {showKeywords && KEYWORDS.map((kw, i) => (
-          <ProximityKeyword
+          <DriftingKeyword
             key={kw.label}
             kw={kw}
-            pos={positions[i]}
+            path={paths[i]}
             mouseX={mouseX}
             mouseY={mouseY}
-            isSuggesting={isSuggesting}
             onClick={() => onKeywordClick?.(kw.query)}
+            glowColor={i % 2 === 0 ? palette.primary : palette.glow}
+            breathIndex={i}
           />
         ))}
       </AnimatePresence>

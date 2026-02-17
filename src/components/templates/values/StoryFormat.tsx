@@ -5,12 +5,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const beliefs = d?.beliefs?.ja ?? d?.beliefs?.en ?? '';
   const vision = d?.visionForFutureSaaS?.ja ?? d?.visionForFutureSaaS?.en ?? '';
@@ -68,12 +69,12 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
           <motion.section
             className="mb-8"
             style={{ ...revealStyle(0), borderRadius: organicRadius }}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
           >
             <p
-              className="text-lg md:text-xl text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+              className="text-lg md:text-xl text-gray-800 leading-[1.9] tracking-normal line-clamp-3"
               style={{
                 fontFamily: 'Georgia, "Noto Serif JP", serif',
                 ...breatheStyle(0),
@@ -109,8 +110,8 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
             <motion.section
               className="mb-8"
               style={{ ...revealStyle(1), borderRadius: organicRadius }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 0.6 }}
             >
               <motion.div
@@ -129,7 +130,7 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
                 </span>
               </motion.div>
               <p
-                className="text-lg text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+                className="text-lg text-gray-800 leading-[1.9] tracking-normal line-clamp-3"
                 style={{
                   fontFamily: 'Georgia, "Noto Serif JP", serif',
                   transform: 'translateZ(20px)',
@@ -164,8 +165,8 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
             <motion.section
               className="mb-8"
               style={{ ...revealStyle(2), borderRadius: organicRadius }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 1.0 }}
             >
               <motion.div
@@ -184,7 +185,7 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
                 </span>
               </motion.div>
               <p
-                className="text-lg text-gray-700 leading-[1.9] tracking-wide line-clamp-3"
+                className="text-lg text-gray-800 leading-[1.9] tracking-normal line-clamp-3"
                 style={{
                   fontFamily: 'Georgia, "Noto Serif JP", serif',
                   transform: 'translateZ(20px)',
@@ -215,8 +216,8 @@ export function ValuesStoryFormat({ data, commentary, visualSeed }: TemplateProp
           <motion.div
             className="prose prose-gray max-w-none prose-p:leading-relaxed"
             style={{ transform: 'translateZ(20px)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: baseDelay + 1.5 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

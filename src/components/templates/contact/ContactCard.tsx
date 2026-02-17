@@ -6,12 +6,13 @@ import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin } from 'lucide-react';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const email = d?.email ?? '';
   const github = d?.github ?? '';
@@ -58,8 +59,8 @@ export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
 
       <motion.div
         className="relative max-w-md w-full mx-6"
-        initial={{ opacity: 0, y: 30, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ ...SPRING_ENTER, delay: baseDelay }}
       >
         {/* Glass card — organicRadius instead of rounded-3xl */}
@@ -78,7 +79,7 @@ export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
           {/* Message — ai-breathe on main heading */}
           {message && (
             <motion.p
-              className="text-center text-lg text-gray-700 leading-relaxed mb-8"
+              className="text-center text-lg text-gray-800 leading-relaxed mb-8"
               style={{
                 ...breatheStyle(0),
                 transform: 'translateZ(40px)',
@@ -123,8 +124,8 @@ export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
                   }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ ...SPRING_ENTER, delay: baseDelay + 0.4 + 0.12 * i }}
-                  whileHover={{ x: 4 }}
+                  transition={{ ...SPRING_ENTER, delay: baseDelay + 0.4 + stagger * i }}
+                  whileHover={{ scale: 1.02 }}
                 >
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300"
@@ -136,8 +137,8 @@ export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">{link.name}</p>
-                    <p className="text-sm text-gray-700 truncate group-hover:text-gray-900 transition-colors">
+                    <p className="text-xs text-gray-800 uppercase tracking-wider">{link.name}</p>
+                    <p className="text-sm text-gray-800 truncate group-hover:text-gray-900 transition-colors">
                       {link.label}
                     </p>
                   </div>
@@ -152,8 +153,8 @@ export function ContactCard({ data, commentary, visualSeed }: TemplateProps) {
           <motion.div
             className="mt-8 prose prose-sm prose-gray max-w-none text-center"
             style={{ transform: 'translateZ(20px)' }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: baseDelay + 0.8 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

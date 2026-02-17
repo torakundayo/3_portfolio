@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -24,12 +24,13 @@ export function ProjectsTimeline({ data, commentary, visualSeed }: TemplateProps
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
   const mirrorLayout = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Sort projects by year descending
   const sorted = [...projects].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 
   return (
-    <div className="h-full w-full overflow-hidden bg-zinc-950 flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col">
       {/* CSS keyframe background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -44,12 +45,12 @@ export function ProjectsTimeline({ data, commentary, visualSeed }: TemplateProps
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const } }}
             className="mb-4 text-center flex-shrink-0"
           >
-            <div className="max-w-xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-400 prose-headings:text-white">
+            <div className="max-w-xl mx-auto prose prose-sm prose-p:text-gray-800">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {commentary}
               </ReactMarkdown>
@@ -88,11 +89,11 @@ export function ProjectsTimeline({ data, commentary, visualSeed }: TemplateProps
                     {isAbove ? (
                       <>
                         <motion.div
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
                           transition={{
-                            opacity: { duration: 0.6, delay: baseDelay + 0.4 + i * 0.18, ease: [0.22, 1, 0.36, 1] as const },
-                            y: { ...SPRING_ENTER, delay: i * 0.12 },
+                            opacity: { duration: 0.6, delay: baseDelay + 0.4 + stagger * i, ease: [0.22, 1, 0.36, 1] as const },
+                            scale: { ...SPRING_ENTER, delay: stagger * i },
                           }}
                           className="mb-3 w-full"
                           style={{ ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
@@ -111,7 +112,7 @@ export function ProjectsTimeline({ data, commentary, visualSeed }: TemplateProps
                           project={project}
                           palette={palette}
                           baseDelay={baseDelay}
-                          cardDelay={baseDelay + 0.4 + i * 0.18}
+                          cardDelay={baseDelay + 0.4 + stagger * i}
                         />
                       </>
                     ) : (
@@ -121,15 +122,15 @@ export function ProjectsTimeline({ data, commentary, visualSeed }: TemplateProps
                           project={project}
                           palette={palette}
                           baseDelay={baseDelay}
-                          cardDelay={baseDelay + 0.4 + i * 0.18}
+                          cardDelay={baseDelay + 0.4 + stagger * i}
                         />
 
                         <motion.div
-                          initial={{ opacity: 0, y: -30 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
                           transition={{
-                            opacity: { duration: 0.6, delay: baseDelay + 0.4 + i * 0.18, ease: [0.22, 1, 0.36, 1] as const },
-                            y: { ...SPRING_ENTER, delay: i * 0.12 },
+                            opacity: { duration: 0.6, delay: baseDelay + 0.4 + stagger * i, ease: [0.22, 1, 0.36, 1] as const },
+                            scale: { ...SPRING_ENTER, delay: stagger * i },
                           }}
                           className="mt-3 w-full"
                           style={{ ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
@@ -179,7 +180,7 @@ function TimelineNode({
           className="w-3.5 h-3.5 rounded-full border-2"
           style={{
             borderColor: palette.primary,
-            backgroundColor: 'rgb(9 9 11)',
+            backgroundColor: 'rgb(255 255 255)',
             boxShadow: `0 0 12px ${palette.glow}40`,
           }}
         />
@@ -228,7 +229,7 @@ function TimelineCard({
 }) {
   return (
     <div
-      className="group relative border border-white/8 backdrop-blur-xl bg-white/5 p-3 transition-all duration-500 hover:border-white/15"
+      className="group relative border border-gray-200 backdrop-blur-xl bg-gray-50/5 p-3 transition-all duration-500 hover:border-gray-200"
       style={{
         borderRadius: organicRadius,
       }}
@@ -267,7 +268,7 @@ function TimelineCard({
       )}
 
       <h3
-        className="text-sm font-bold text-white mb-0.5 tracking-tight"
+        className="text-sm font-bold text-gray-900 mb-0.5 tracking-tight"
         style={{ ...breatheStyle(index), transform: 'translateZ(40px)' }}
       >
         {project.name}
@@ -283,7 +284,7 @@ function TimelineCard({
       )}
 
       {description && (
-        <p className="text-[10px] text-zinc-500 mb-2 leading-relaxed line-clamp-2">
+        <p className="text-[10px] text-gray-800 mb-2 leading-relaxed line-clamp-2">
           {description}
         </p>
       )}
@@ -293,13 +294,13 @@ function TimelineCard({
           {project.stack.slice(0, 3).map((tech) => (
             <span
               key={tech}
-              className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/5"
+              className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-800 border border-gray-200"
             >
               {tech}
             </span>
           ))}
           {project.stack.length > 3 && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600">
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-800">
               +{project.stack.length - 3}
             </span>
           )}
@@ -323,7 +324,7 @@ function TimelineCard({
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] font-medium text-zinc-600 hover:text-zinc-400 transition-colors duration-300 hover:underline"
+            className="text-[10px] font-medium text-gray-800 hover:text-gray-900 transition-colors duration-300 hover:underline"
           >
             GitHub
           </a>

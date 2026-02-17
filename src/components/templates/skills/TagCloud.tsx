@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 /**
  * Floating tag cloud visualization.
@@ -19,6 +19,7 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
   const allSkills = categories.flatMap((c: any) => c.skills ?? []);
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Deterministic pseudo-random from seed
   const seededRandom = (index: number, offset: number = 0) => {
@@ -44,10 +45,10 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
         fontSize,
         x: Math.max(8, Math.min(92, xPct)),
         y: Math.max(8, Math.min(85, yPct)),
-        floatX: (seededRandom(i, 2) - 0.5) * 30,
-        floatY: (seededRandom(i, 3) - 0.5) * 20,
+        floatX: (seededRandom(i, 2) - 0.5) * 50,
+        floatY: (seededRandom(i, 3) - 0.5) * 44,
         floatDuration: 4 + seededRandom(i, 4) * 6,
-        delay: baseDelay + i * 0.06,
+        delay: baseDelay + stagger * i,
       };
     });
   }, [allSkills, baseDelay, mirror, visualSeed.colorOffset]);
@@ -65,7 +66,7 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
   };
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -80,12 +81,12 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
         {/* Title */}
         <motion.div
           className="px-6 pt-8 text-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           <h2
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
             style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
           >
             <span
@@ -132,7 +133,7 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
                     ease: 'easeInOut',
                   }}
                 >
-                  <motion.span
+                  <span
                     className="inline-block cursor-default rounded-full border px-3 py-1.5 font-medium whitespace-nowrap transition-all duration-300 hover:scale-110"
                     style={{
                       fontSize: `${tag.fontSize}rem`,
@@ -140,13 +141,11 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
                       textShadow: style.textShadow,
                       borderColor: style.borderColor,
                       backgroundColor: style.backgroundColor,
-                    }}
-                    whileHover={{
                       boxShadow: `0 0 24px ${palette.glow}50, 0 0 48px ${palette.primary}30`,
                     }}
                   >
                     {tag.skill.name}
-                  </motion.span>
+                  </span>
                 </motion.div>
               </motion.div>
             );
@@ -156,16 +155,16 @@ export function SkillsTagCloud({ data, commentary, visualSeed }: TemplateProps) 
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: baseDelay + allSkills.length * 0.06 + 0.6 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: baseDelay + allSkills.length * stagger + 0.6 }}
             className="mx-auto mb-6 w-full max-w-2xl px-6"
           >
             <div
-              className="border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+              className="border border-gray-200 bg-white/50 p-5 backdrop-blur-sm"
               style={{ borderRadius: organicRadius }}
             >
-              <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
+              <div className="prose prose-sm max-w-none prose-p:text-gray-800 prose-strong:text-gray-900 prose-a:text-indigo-600">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>
             </div>

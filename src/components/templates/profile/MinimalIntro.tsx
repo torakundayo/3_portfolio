@@ -5,19 +5,20 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger: seededStaggerVal } = seededStagger(visualSeed.colorOffset);
 
   const stagger = {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.18,
+        staggerChildren: seededStaggerVal,
         delayChildren: baseDelay + 0.2,
       },
     },
@@ -32,11 +33,10 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
   };
 
   const slideUp = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { ...SPRING_ENTER, opacity: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const } },
+      transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const },
     },
   };
 
@@ -66,7 +66,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {/* Name in light gray - very large */}
           <motion.h1
             variants={fadeIn}
-            className="text-5xl md:text-7xl lg:text-8xl font-extralight text-gray-200 leading-none tracking-tight select-none"
+            className="text-5xl md:text-7xl lg:text-8xl font-semibold text-gray-800 leading-none tracking-tight select-none"
             style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
           >
             {profile?.name?.ja || profile?.name?.en || 'Name'}
@@ -76,7 +76,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {profile?.name?.en && profile?.name?.ja && (
             <motion.p
               variants={fadeIn}
-              className="text-sm text-gray-300 mt-2 font-light tracking-widest"
+              className="text-sm text-gray-800 mt-2 font-normal tracking-normal"
               style={{ transform: 'translateZ(25px)' }}
             >
               {profile.name.en}
@@ -93,7 +93,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {/* Title */}
           <motion.p
             variants={slideUp}
-            className="text-lg md:text-xl text-gray-700 font-light leading-relaxed"
+            className="text-lg md:text-xl text-gray-800 font-medium leading-relaxed"
             style={{ transform: 'translateZ(25px)', ...breatheStyle(1) }}
           >
             {profile?.title?.ja || profile?.title?.en || ''}
@@ -103,7 +103,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {(profile?.location?.ja || profile?.location?.en) && (
             <motion.p
               variants={slideUp}
-              className="text-xs text-gray-400 mt-2 tracking-wider"
+              className="text-sm text-gray-800 mt-2 tracking-normal"
               style={{ transform: 'translateZ(15px)' }}
             >
               {profile.location.ja || profile.location.en}
@@ -114,7 +114,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {(profile?.introduction?.ja || profile?.introduction?.en) && (
             <motion.p
               variants={slideUp}
-              className="text-base text-gray-500 leading-[1.9] mt-10 font-light line-clamp-5"
+              className="text-base text-gray-800 leading-[1.9] mt-10 font-normal line-clamp-5"
               style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
             >
               {profile.introduction.ja || profile.introduction.en}
@@ -125,7 +125,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {(profile?.background?.ja || profile?.background?.en) && (
             <motion.p
               variants={slideUp}
-              className="text-sm text-gray-400 leading-[1.8] mt-6 font-light line-clamp-3"
+              className="text-sm text-gray-800 leading-[1.8] mt-6 font-normal line-clamp-3"
               style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
             >
               {profile.background.ja || profile.background.en}
@@ -143,7 +143,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
                   href={profile.links.github}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-gray-400 hover:text-gray-700 transition-colors duration-500
+                  className="text-xs text-gray-800 hover:text-gray-900 transition-colors duration-500
                              tracking-wider uppercase"
                 >
                   GitHub
@@ -154,7 +154,7 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
                   href={profile.links.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-gray-400 hover:text-gray-700 transition-colors duration-500
+                  className="text-xs text-gray-800 hover:text-gray-900 transition-colors duration-500
                              tracking-wider uppercase"
                 >
                   LinkedIn
@@ -170,10 +170,10 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
               className="mt-16 pt-8 border-t border-gray-100"
               style={revealStyle(2)}
             >
-              <p className="text-[10px] text-gray-300 uppercase tracking-[0.3em] mb-5" style={{ transform: 'translateZ(25px)' }}>
+              <p className="text-xs text-gray-800 uppercase tracking-normal mb-5" style={{ transform: 'translateZ(25px)' }}>
                 Commentary
               </p>
-              <div className="prose prose-sm prose-gray prose-p:text-gray-400 prose-p:font-light prose-p:leading-relaxed max-w-none line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
+              <div className="prose prose-sm prose-gray prose-p:text-gray-800 prose-p:leading-relaxed max-w-none line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>
             </motion.div>

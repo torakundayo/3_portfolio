@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
@@ -13,28 +13,28 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
   const gradientAngle = 200 + visualSeed.colorOffset * 0.2;
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger: seededStaggerVal } = seededStagger(visualSeed.colorOffset);
 
   const stagger = {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: seededStaggerVal,
         delayChildren: baseDelay + 0.5,
       },
     },
   };
 
   const slideFromBottom = {
-    hidden: { opacity: 0, y: 40 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { ...SPRING_ENTER, opacity: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
+      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
     },
   };
 
   return (
-    <div className="h-full w-full overflow-hidden relative bg-gray-950">
+    <div className="h-full w-full overflow-hidden relative bg-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -54,7 +54,7 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
         style={{ transform: 'translateZ(-20px)' }}
       >
         <span
-          className="text-[12vw] md:text-[14vw] font-black text-white/[0.02] leading-none whitespace-nowrap tracking-tighter"
+          className="text-[12vw] md:text-[14vw] font-black text-gray-100 leading-none whitespace-nowrap tracking-tighter"
           style={{
             WebkitTextStroke: `1px ${palette.primary}08`,
           }}
@@ -74,14 +74,14 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
         >
           <div className="text-center">
             <h1
-              className="text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-none tracking-tight"
+              className="text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900 leading-none tracking-tight"
               style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
             >
               {profile?.name?.ja || profile?.name?.en || 'Name'}
             </h1>
             {profile?.name?.en && profile?.name?.ja && (
               <motion.p
-                className="text-sm md:text-base text-white/20 mt-3 tracking-[0.3em] uppercase font-light"
+                className="text-sm md:text-base text-gray-800 mt-3 tracking-normal uppercase font-normal"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: baseDelay + 0.4 }}
@@ -96,14 +96,14 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
         {/* Glassmorphism info panel at bottom */}
         <motion.div
           className={`mx-4 md:mx-8 mb-6 ${mirror ? 'md:ml-auto md:mr-8' : 'md:mr-auto md:ml-8'} md:max-w-lg`}
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay + 0.3, opacity: { duration: 0.9, delay: baseDelay + 0.3, ease: [0.22, 1, 0.36, 1] as const } }}
         >
           <div
-            className="relative border border-white/[0.08] overflow-hidden"
+            className="relative border border-gray-200 overflow-hidden shadow-sm"
             style={{
-              background: 'rgba(255,255,255,0.03)',
+              background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
               borderRadius: organicRadius,
@@ -136,7 +136,7 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
               {(profile?.location?.ja || profile?.location?.en) && (
                 <motion.p
                   variants={slideFromBottom}
-                  className="text-xs text-white/30 mt-1.5 tracking-wider"
+                  className="text-xs text-gray-800 mt-1.5 tracking-normal"
                   style={{ transform: 'translateZ(15px)' }}
                 >
                   {profile.location.ja || profile.location.en}
@@ -156,7 +156,7 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
               {(profile?.introduction?.ja || profile?.introduction?.en) && (
                 <motion.p
                   variants={slideFromBottom}
-                  className="text-xs text-white/60 leading-relaxed font-light line-clamp-3"
+                  className="text-sm text-gray-800 leading-relaxed font-normal line-clamp-3"
                   style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
                 >
                   {profile.introduction.ja || profile.introduction.en}
@@ -167,7 +167,7 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
               {(profile?.background?.ja || profile?.background?.en) && (
                 <motion.p
                   variants={slideFromBottom}
-                  className="text-xs text-white/40 leading-relaxed font-light mt-3 line-clamp-2"
+                  className="text-sm text-gray-800 leading-relaxed font-normal mt-3 line-clamp-2"
                   style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
                 >
                   {profile.background.ja || profile.background.en}
@@ -182,8 +182,8 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
                       href={profile.links.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-3 py-1.5 text-xs text-white/40
-                                 border border-white/[0.06] hover:border-white/20 hover:text-white/70
+                      className="group flex items-center gap-2 px-3 py-1.5 text-xs text-gray-800
+                                 border border-gray-200 hover:border-gray-400 hover:text-gray-900
                                  transition-all duration-300"
                       style={{ borderRadius: organicRadius }}
                     >
@@ -198,8 +198,8 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
                       href={profile.links.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-3 py-1.5 text-xs text-white/40
-                                 border border-white/[0.06] hover:border-white/20 hover:text-white/70
+                      className="group flex items-center gap-2 px-3 py-1.5 text-xs text-gray-800
+                                 border border-gray-200 hover:border-gray-400 hover:text-gray-900
                                  transition-all duration-300"
                       style={{ borderRadius: organicRadius }}
                     >
@@ -216,17 +216,17 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
               {commentary && (
                 <motion.div
                   variants={slideFromBottom}
-                  className="mt-4 pt-4 border-t border-white/[0.06]"
+                  className="mt-4 pt-4 border-t border-gray-200"
                   style={revealStyle(2)}
                 >
                   <p
-                    className="text-[10px] uppercase tracking-[0.25em] mb-2"
+                    className="text-xs uppercase tracking-[0.25em] mb-2"
                     style={{ color: palette.secondary, transform: 'translateZ(25px)' }}
                   >
                     AI Commentary
                   </p>
                   <div
-                    className="prose prose-sm prose-invert prose-p:text-white/40 prose-p:font-light prose-p:text-xs prose-p:leading-relaxed max-w-none line-clamp-3"
+                    className="prose prose-sm prose-p:text-gray-800 prose-p:text-sm prose-p:leading-relaxed max-w-none line-clamp-3"
                     style={{ transform: 'translateZ(15px)' }}
                   >
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

@@ -22,8 +22,8 @@ export function Placeholder({ commentary, visualSeed }: TemplateProps) {
         }}
       />
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
         className="max-w-2xl w-full"
       >

@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger, seededDecoration } from '@/lib/animation';
 
 export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
@@ -13,23 +13,26 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
   const gradientAngle = 135 + visualSeed.colorOffset * 0.25;
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const variant = getLayoutVariant(visualSeed.layoutVariant);
+  const { stagger, reverse } = seededStagger(visualSeed.colorOffset);
+  const deco = seededDecoration(visualSeed.colorOffset, 0);
 
   const containerVariants = {
     hidden: {},
     visible: {
       transition: {
-        staggerChildren: 0.15,
+        staggerChildren: stagger,
+        staggerDirection: reverse ? -1 : 1,
         delayChildren: baseDelay,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { ...SPRING_ENTER, opacity: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const } },
+      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
     },
   };
 
@@ -42,15 +45,18 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
     >
       {/* Decorative line */}
       <motion.div
-        variants={itemVariants}
-        className="w-12 h-1 rounded-full mb-8"
+        className="w-12 h-1 rounded-full mb-8 origin-left"
         style={{ backgroundColor: palette.primary, transform: 'translateZ(-20px)' }}
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={{ scaleX: 1, opacity: 1 }}
+        transition={{ ...SPRING_ENTER, delay: baseDelay }}
       />
 
       {/* Name */}
       <motion.h1
+        data-observe-zone="profile-name"
         variants={itemVariants}
-        className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight"
+        className="text-5xl md:text-7xl font-bold text-gray-900 leading-tight tracking-tight"
         style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
       >
         {profile?.name?.ja || profile?.name?.en || 'Name'}
@@ -59,7 +65,7 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
       {profile?.name?.en && profile?.name?.ja && (
         <motion.p
           variants={itemVariants}
-          className="text-lg md:text-xl text-white/50 mt-2 font-light tracking-wide"
+          className="text-lg md:text-xl text-gray-800 mt-2 font-normal tracking-normal"
           style={{ transform: 'translateZ(25px)' }}
         >
           {profile.name.en}
@@ -79,7 +85,7 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
       {(profile?.location?.ja || profile?.location?.en) && (
         <motion.p
           variants={itemVariants}
-          className="text-sm text-white/40 mt-3 flex items-center gap-2"
+          className="text-sm text-gray-800 mt-3 flex items-center gap-2"
           style={{ transform: 'translateZ(15px)' }}
         >
           <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: palette.glow }} />
@@ -95,8 +101,8 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
               href={profile.links.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-sm font-medium text-white/70 border border-white/10
-                         hover:border-white/30 hover:text-white transition-all duration-300"
+              className="px-4 py-2 text-sm font-medium text-gray-800 border border-gray-200
+                         hover:border-gray-400 hover:text-gray-900 transition-all duration-300"
               style={{ borderRadius: organicRadius }}
             >
               GitHub
@@ -107,8 +113,8 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
               href={profile.links.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 text-sm font-medium text-white/70 border border-white/10
-                         hover:border-white/30 hover:text-white transition-all duration-300"
+              className="px-4 py-2 text-sm font-medium text-gray-800 border border-gray-200
+                         hover:border-gray-400 hover:text-gray-900 transition-all duration-300"
               style={{ borderRadius: organicRadius }}
             >
               LinkedIn
@@ -132,7 +138,7 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
           <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.glow, transform: 'translateZ(25px)' }}>
             Introduction
           </p>
-          <p className="text-base md:text-lg text-white/80 leading-relaxed font-light line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
+          <p className="text-base md:text-lg text-gray-800 leading-relaxed font-normal line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
             {profile.introduction.ja || profile.introduction.en}
           </p>
         </div>
@@ -144,7 +150,7 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
           <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.glow, transform: 'translateZ(25px)' }}>
             Background
           </p>
-          <p className="text-sm md:text-base text-white/60 leading-relaxed font-light line-clamp-4" style={{ transform: 'translateZ(15px)' }}>
+          <p className="text-sm md:text-base text-gray-800 leading-relaxed font-normal line-clamp-4" style={{ transform: 'translateZ(15px)' }}>
             {profile.background.ja || profile.background.en}
           </p>
         </div>
@@ -153,16 +159,16 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
       {/* AI Commentary */}
       {commentary && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: baseDelay + 0.6 }}
-          className="mt-4 pt-6 border-t border-white/10"
+          className="mt-4 pt-6 border-t border-gray-200"
           style={revealStyle(2)}
         >
           <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.secondary, transform: 'translateZ(25px)' }}>
             AI Commentary
           </p>
-          <div className="prose prose-sm prose-invert prose-p:text-white/60 prose-p:font-light max-w-none line-clamp-6" style={{ transform: 'translateZ(15px)' }}>
+          <div className="prose prose-sm prose-p:text-gray-800 max-w-none line-clamp-6" style={{ transform: 'translateZ(15px)' }}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </div>
         </motion.div>
@@ -171,7 +177,7 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
   );
 
   return (
-    <div className="h-full w-full overflow-hidden relative bg-gray-950">
+    <div className="h-full w-full overflow-hidden relative bg-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -182,33 +188,52 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
                    animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
       </div>
 
-      {/* Subtle grid pattern overlay */}
+      {/* Subtle grid pattern overlay — seed-varied angle and size */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(${palette.primary}40 1px, transparent 1px), linear-gradient(90deg, ${palette.primary}40 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
+          backgroundImage: `linear-gradient(${deco.angle}deg, ${palette.primary}40 1px, transparent 1px), linear-gradient(${deco.angle + 90}deg, ${palette.primary}40 1px, transparent 1px)`,
+          backgroundSize: `${deco.gridSize}px ${deco.gridSize}px`,
           transform: 'translateZ(-20px)',
         }}
       />
 
-      {/* Split layout */}
-      <div className={`relative z-10 h-full grid grid-cols-1 md:grid-cols-2 ${mirror ? 'md:[direction:rtl]' : ''}`}>
-        <div className={mirror ? 'md:[direction:ltr]' : ''}>{leftContent}</div>
-        <div className={`relative ${mirror ? 'md:[direction:ltr]' : ''}`}>
-          {/* Divider line */}
-          <motion.div
-            className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 w-px h-2/3"
-            style={{
-              background: `linear-gradient(180deg, transparent, ${palette.primary}40, transparent)`,
-            }}
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
-          />
-          {rightContent}
+      {/* Layout — variant A: 50/50 split, B: centered single-col, C: 1/3 + 2/3 asymmetric */}
+      {variant === 'B' ? (
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-8 md:px-20">
+          {leftContent}
+          <div className="w-full max-w-2xl mt-4">
+            {/* Horizontal divider */}
+            <motion.div
+              className="w-1/3 mx-auto h-px mb-6"
+              style={{ background: `linear-gradient(90deg, transparent, ${palette.primary}40, transparent)` }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
+            />
+            {rightContent}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className={`relative z-10 h-full grid grid-cols-1 ${
+          variant === 'C' ? 'md:grid-cols-[1fr_2fr]' : 'md:grid-cols-2'
+        } ${mirror ? 'md:[direction:rtl]' : ''}`}>
+          <div className={mirror ? 'md:[direction:ltr]' : ''}>{leftContent}</div>
+          <div className={`relative ${mirror ? 'md:[direction:ltr]' : ''}`}>
+            {/* Divider line */}
+            <motion.div
+              className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 w-px h-2/3"
+              style={{
+                background: `linear-gradient(180deg, transparent, ${palette.primary}40, transparent)`,
+              }}
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.2 }}
+            />
+            {rightContent}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

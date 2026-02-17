@@ -2,6 +2,11 @@
  * Pre-generated response bank.
  * Each intent category has multiple variants (template + commentary).
  * The system picks one that hasn't been recently used, ensuring variety.
+ *
+ * Commentary rules:
+ * - Never describe the template format ("タイムライン形式で", "カード形式で" etc.)
+ * - Provide genuine insights, context, or personality that the visual can't convey
+ * - Write as a person sharing their story, not as a UI narrating itself
  */
 
 import type { IntentCategory } from './intent-classifier';
@@ -28,25 +33,25 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'profile-hero-split',
       dataTools: [{ toolName: 'getProfile', output: profile }],
       commentary:
-        'こちらが基本的なプロフィールです。気になる点があれば、もっと詳しくお話しできますよ。',
+        'フルスタックの中でも特にフロントエンドとUX設計に情熱を持っています。気になる点があれば、もっと詳しくお話しできますよ。',
     },
     {
       templateId: 'profile-centered-bio',
       dataTools: [{ toolName: 'getProfile', output: profile }],
       commentary:
-        '自己紹介をまとめました。技術スキルやプロジェクトについても聞いてみてください。',
+        '技術とデザインの両方を追求するエンジニアです。「使って気持ちいい」を基準にものづくりをしています。',
     },
     {
       templateId: 'profile-card-stack',
       dataTools: [{ toolName: 'getProfile', output: profile }],
       commentary:
-        'カードスタック形式でプロフィールを表示しています。各カードをご覧ください。',
+        'エンジニアリングだけでなく、プロダクト全体を見渡せる視点を大切にしています。',
     },
     {
       templateId: 'profile-full-portrait',
       dataTools: [{ toolName: 'getProfile', output: profile }],
       commentary:
-        'フルスクリーンで自己紹介をお届けします。何でもお気軽にどうぞ。',
+        '何でもお気軽に聞いてください。技術スキルやプロジェクトの詳細もお話しできます。',
     },
   ],
 
@@ -55,31 +60,31 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'projects-horizontal-slider',
       dataTools: [{ toolName: 'getProjects', output: projects }],
       commentary:
-        '開発したプロジェクトの一覧です。横にスクロールして各プロジェクトをご覧ください。',
+        'それぞれのプロジェクトが異なる技術的チャレンジを解決しています。特に興味のあるものがあれば詳しく聞いてください。',
     },
     {
       templateId: 'projects-grid-gallery',
       dataTools: [{ toolName: 'getProjects', output: projects }],
       commentary:
-        'プロジェクトをギャラリー形式で並べました。それぞれが異なる課題を解決しています。',
+        '個人開発からチーム開発まで、規模も技術スタックも多様なプロジェクトに取り組んできました。',
     },
     {
       templateId: 'projects-spotlight',
       dataTools: [{ toolName: 'getProjects', output: projects }],
       commentary:
-        'プロジェクトをスポットライト形式でフィーチャーしています。',
+        '技術選定からUI設計、実装まで一貫して手がけたプロジェクトです。',
     },
     {
       templateId: 'projects-timeline',
       dataTools: [{ toolName: 'getProjects', output: projects }],
       commentary:
-        '時系列でプロジェクトを並べました。開発の成長過程がわかるかと思います。',
+        '新しいプロジェクトごとに技術の幅を広げてきました。最近はAIとフロントエンドの融合に注力しています。',
     },
     {
       templateId: 'projects-showcase-stack',
       dataTools: [{ toolName: 'getProjects', output: projects }],
       commentary:
-        'カードスタック形式でプロジェクトを紹介します。インパクトのあるプロジェクトばかりです。',
+        'どのプロジェクトも「ユーザーにとって本当に価値があるか」を基準に設計しています。',
     },
   ],
 
@@ -88,31 +93,31 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'skills-bar-chart',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
-        '技術スキルをレベル別に表示しています。フロントエンドが特に強みです。',
+        'フロントエンドが最も得意な領域ですが、バックエンドやインフラも一通りカバーしています。',
     },
     {
       templateId: 'skills-radar-chart',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
-        'レーダーチャートでスキルのバランスを可視化しました。',
+        'React + TypeScriptを軸に、必要に応じて技術スタックを柔軟に選べるのが強みです。',
     },
     {
       templateId: 'skills-tag-cloud',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
-        'タグクラウド形式で技術スタックの広がりを表現しています。',
+        '新しい技術を試すのが好きで、プロジェクトごとに最適な選択をするよう心がけています。',
     },
     {
       templateId: 'skills-category-cards',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
-        'カテゴリ別にスキルを整理しました。各技術の習熟度もご確認いただけます。',
+        '各技術は実際のプロジェクトで使い込んで身につけたものです。机上の知識ではありません。',
     },
     {
       templateId: 'skills-matrix',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
-        '経験年数とレベルの2軸でスキルをマッピングしています。',
+        '経験の深さと幅のバランスを意識してスキルを磨いてきました。',
     },
   ],
 
@@ -121,25 +126,25 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'career-vertical-timeline',
       dataTools: [{ toolName: 'getCareer', output: career }],
       commentary:
-        '職歴をタイムライン形式でまとめました。各ポジションでの経験が見えます。',
+        '各ポジションで新しい挑戦を求め、技術的な成長を続けてきました。',
     },
     {
       templateId: 'career-horizontal-timeline',
       dataTools: [{ toolName: 'getCareer', output: career }],
       commentary:
-        'キャリアの流れを横型タイムラインで表示しています。',
+        'キャリアを通じて一貫しているのは、ユーザー体験への強いこだわりです。',
     },
     {
       templateId: 'career-company-cards',
       dataTools: [{ toolName: 'getCareer', output: career }],
       commentary:
-        '会社ごとのカード形式で経歴を紹介します。各社での成果もご覧ください。',
+        'それぞれの環境で異なるスケールの課題に取り組み、視野を広げてきました。',
     },
     {
       templateId: 'career-journey',
       dataTools: [{ toolName: 'getCareer', output: career }],
       commentary:
-        'キャリアジャーニーとしてストーリー形式で表現しました。',
+        '技術だけでなく、チーム開発やプロダクト思考も経験の中で培ってきました。',
     },
   ],
 
@@ -148,19 +153,19 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'values-quote-card',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
-        '大切にしている価値観をまとめました。技術だけでなく、ビジョンも見ていただけると嬉しいです。',
+        '技術は手段であり、目的はユーザーの体験を良くすること。その信念がすべての開発の根底にあります。',
     },
     {
       templateId: 'values-manifesto',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
-        'マニフェスト形式で信念を表現しています。次世代のWebに対するビジョンです。',
+        '次世代のWebは、ユーザーが探し回るのではなく、必要な情報が自然に届く世界。このサイト自体がそのビジョンの実証です。',
     },
     {
       templateId: 'values-story-format',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
-        'ストーリー形式で価値観をお伝えします。このポートフォリオ自体がそのビジョンの実証です。',
+        'コードを書くだけでなく、「なぜ作るのか」を常に考えるエンジニアでありたいと思っています。',
     },
   ],
 
@@ -175,7 +180,7 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'contact-minimal-links',
       dataTools: [{ toolName: 'getContact', output: contact }],
       commentary:
-        '連絡先をシンプルにまとめました。どのチャネルからでもお待ちしています。',
+        'どのチャネルからでもお待ちしています。お気軽にどうぞ。',
     },
     {
       templateId: 'contact-fullscreen-cta',
@@ -196,7 +201,7 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
       templateId: 'text-centered-prose',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
-        'このサイトはAIチャットボットファーストのポートフォリオです。ページ遷移は一切なく、あなたの質問に応じてAIがデザインそのものをリアルタイムに生成します。\n\n「次世代SaaSのUI/UX」の概念実証として開発しました。将来のWebサービスは、ユーザーがページを探し回るのではなく、AIに話しかけるだけで必要な情報が最適な形で提示される — そんな世界観を体現しています。',
+        'ページ遷移は一切なく、あなたの質問に応じてAIがデザインそのものをリアルタイムに生成します。\n\n将来のWebサービスは、ユーザーがページを探し回るのではなく、AIに話しかけるだけで必要な情報が最適な形で提示される — そんな世界観を体現しています。',
     },
     {
       templateId: 'text-qa-format',

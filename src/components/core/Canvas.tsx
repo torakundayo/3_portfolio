@@ -5,27 +5,59 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTemplateManager } from '@/hooks/useTemplateManager';
-import { useIdleDetector } from '@/hooks/useIdleDetector';
+import { useBehaviorObserver } from '@/hooks/useBehaviorObserver';
+import { useProactiveResponse } from '@/hooks/useProactiveResponse';
 import { templateRegistry } from '@/components/templates/registry';
-import { transitionVariants, transitionConfig } from '@/lib/transitions';
+import { makeClipExpandVariants, transitionConfig } from '@/lib/transitions';
 import { classifyIntent } from '@/lib/ai/intent-classifier';
 import { getCachedResponse } from '@/lib/ai/cached-responses';
 import { FloatingInput } from './FloatingInput';
 import { LoadingOverlay } from './LoadingOverlay';
 import { TemplateShell } from './TemplateShell';
+import { AmbientWhisper } from './AmbientWhisper';
+import { ContentPillars } from './ContentPillars';
+import { DwellHighlight } from './DwellHighlight';
 import { StaticFallback } from '@/components/templates/StaticFallback';
 import { WelcomeMinimalInput } from '@/components/templates/welcome/MinimalInput';
 import { generateVisualSeed } from '@/lib/visual-seed';
+import type { VisualSeed } from '@/lib/types';
 
 let msgCounter = 0;
 function nextId(prefix: string) {
   return `${prefix}-${Date.now()}-${++msgCounter}`;
 }
 
+/* ── Category → query mapping for pillar navigation ── */
+const CATEGORY_QUERIES: Record<string, string> = {
+  profile: 'プロフィールを見せて',
+  projects: 'プロジェクトを教えて',
+  skills: 'スキルは？',
+  career: '経歴を教えて',
+  values: '大切にしていることは？',
+  contact: '連絡先を教えて',
+};
+
+/* ── Template snapshot for history ── */
+interface TemplateSnapshot {
+  templateId: string;
+  templateData: unknown;
+  commentary: string;
+  visualSeed: VisualSeed;
+  category: string;
+}
+
 export function Canvas() {
   const [usedTemplates, setUsedTemplates] = useState<string[]>([]);
   const [forceStatic, setForceStatic] = useState(false);
   const [cachedLoading, setCachedLoading] = useState(false);
+  const [inputFocusedEmpty, setInputFocusedEmpty] = useState(false);
+
+  // ── Transition origin tracking (for clip-path expand from interaction point) ──
+  const [transitionOrigin, setTransitionOrigin] = useState({ x: 50, y: 50 });
+
+  // ── Template history for instant "back" navigation ──
+  const [templateHistory, setTemplateHistory] = useState<TemplateSnapshot[]>([]);
+  const [restoredSnapshot, setRestoredSnapshot] = useState<TemplateSnapshot | null>(null);
 
   // Use ref so the transport's body always reads the latest usedTemplates
   // without recreating the transport (useChat ignores transport changes)
@@ -44,11 +76,35 @@ export function Canvas() {
   const chat = useChat({ transport });
 
   const {
-    templateId, templateData, commentary, inputConfig, visualSeed
+    templateId: rawTemplateId, templateData: rawTemplateData,
+    commentary: rawCommentary, inputConfig, visualSeed: rawVisualSeed
   } = useTemplateManager(chat.messages);
 
+  // Use restored snapshot if active, otherwise use live template manager output
+  const templateId = restoredSnapshot?.templateId ?? rawTemplateId;
+  const templateData = restoredSnapshot?.templateData ?? rawTemplateData;
+  const commentary = restoredSnapshot?.commentary ?? rawCommentary;
+  const visualSeed = restoredSnapshot?.visualSeed ?? rawVisualSeed;
+
   const isWelcome = templateId === 'welcome';
-  const idleStage = useIdleDetector(isWelcome);
+
+  // ─── Behavior observation (replaces useIdleDetector) ───
+  const viewedCategories = useMemo(() =>
+    usedTemplates.map(id => templateRegistry[id]?.meta.category).filter(Boolean) as string[],
+    [usedTemplates]
+  );
+
+  const behaviorState = useBehaviorObserver({
+    scope: isWelcome ? 'welcome' : 'template',
+    viewedCategories,
+    inputFocusedEmpty,
+  });
+
+  const proactiveResponse = useProactiveResponse(
+    behaviorState,
+    templateId,
+    usedTemplates,
+  );
 
   // Track used templates
   useEffect(() => {
@@ -59,6 +115,32 @@ export function Canvas() {
     }
   }, [templateId]);
 
+  // Save template snapshots for history navigation
+  useEffect(() => {
+    if (rawTemplateId && rawTemplateId !== 'welcome' && rawTemplateData) {
+      const category = templateRegistry[rawTemplateId]?.meta.category ?? '';
+      setTemplateHistory(prev => {
+        // Replace existing snapshot for same category, or append
+        const existing = prev.findIndex(s => s.category === category);
+        const snapshot: TemplateSnapshot = {
+          templateId: rawTemplateId,
+          templateData: rawTemplateData,
+          commentary: rawCommentary,
+          visualSeed: rawVisualSeed,
+          category,
+        };
+        if (existing >= 0) {
+          const next = [...prev];
+          next[existing] = snapshot;
+          return next;
+        }
+        return [...prev, snapshot];
+      });
+      // Clear restored snapshot when new live content arrives
+      setRestoredSnapshot(null);
+    }
+  }, [rawTemplateId, rawTemplateData, rawCommentary, rawVisualSeed]);
+
   // ?static param forces StaticFallback for testing
   useEffect(() => {
     setForceStatic(
@@ -68,14 +150,16 @@ export function Canvas() {
 
   // ─── Cache-aware send handler ───
   const handleSend = useCallback(({ text }: { text: string }) => {
+    // Clear any restored snapshot when user makes a new query
+    setRestoredSnapshot(null);
+
     const intent = classifyIntent(text);
     if (intent) {
       const cached = getCachedResponse(intent, usedTemplatesRef.current);
       if (cached) {
         setCachedLoading(true);
 
-        // Brief delay to show loading animation (feels natural)
-        const delay = 300 + Math.random() * 400; // 300-700ms
+        const delay = 300 + Math.random() * 400;
         setTimeout(() => {
           const userMsg = {
             id: nextId('u'),
@@ -83,10 +167,8 @@ export function Canvas() {
             parts: [{ type: 'text' as const, text }],
           };
 
-          // Construct synthetic assistant message with tool parts
           const assistantParts: Record<string, unknown>[] = [];
 
-          // Data tool results
           for (const dt of cached.dataTools) {
             assistantParts.push({
               type: 'dynamic-tool',
@@ -97,7 +179,6 @@ export function Canvas() {
             });
           }
 
-          // renderTemplate result
           assistantParts.push({
             type: 'dynamic-tool',
             toolName: 'renderTemplate',
@@ -106,7 +187,6 @@ export function Canvas() {
             output: cached.templateId,
           });
 
-          // Commentary text
           assistantParts.push({ type: 'text', text: cached.commentary });
 
           const assistantMsg = {
@@ -115,7 +195,6 @@ export function Canvas() {
             parts: assistantParts,
           };
 
-          // Inject both messages into the chat
           chat.setMessages(prev => [...prev, userMsg, assistantMsg] as typeof prev);
           setCachedLoading(false);
         }, delay);
@@ -124,52 +203,89 @@ export function Canvas() {
       }
     }
 
-    // No cache hit → fall through to live Gemini API
     chat.sendMessage({ text });
   }, [chat]);
 
   // Handle keyword click from welcome floating keywords
   const handleKeywordClick = useCallback((query: string) => {
+    // Default origin: center of screen (for welcome keywords)
+    setTransitionOrigin({ x: 50, y: 50 });
     handleSend({ text: query });
   }, [handleSend]);
 
+  // Handle navigation from ContentPillars
+  const handlePillarNavigate = useCallback((category: string, nodeRect: { x: number; y: number }) => {
+    setTransitionOrigin(nodeRect);
+
+    // Check if we have a snapshot for this category → instant restore
+    const snapshot = templateHistory.find(s => s.category === category);
+    if (snapshot) {
+      setRestoredSnapshot(snapshot);
+      return;
+    }
+
+    // No snapshot → send query to get fresh content
+    const query = CATEGORY_QUERIES[category];
+    if (query) handleSend({ text: query });
+  }, [templateHistory, handleSend]);
+
+  // Handle focus-idle state from FloatingInput
+  const handleFocusIdleChange = useCallback((isFocusedEmpty: boolean) => {
+    setInputFocusedEmpty(isFocusedEmpty);
+  }, []);
+
   const entry = templateRegistry[templateId];
   const TemplateComponent = entry?.component;
-  const transitionType = entry?.meta.transition ?? 'scaleBlur';
-  const variants = transitionVariants[transitionType];
-  const config = transitionConfig[transitionType];
+
+  // Dynamic clip-expand variants from transition origin
+  const variants = makeClipExpandVariants(transitionOrigin.x, transitionOrigin.y);
+  const config = transitionConfig.clipExpand;
 
   // Include cachedLoading in overall loading state
   const isLoading = chat.status === 'submitted' || chat.status === 'streaming' || cachedLoading;
   const hasError = chat.status === 'error' || !!chat.error;
 
-  // Show static fallback when API errors on first interaction (no successful response yet)
-  // Check for parts.length > 0 to exclude empty assistant messages left by stream errors
   const hasSuccessfulResponse = chat.messages.some(
     m => m.role === 'assistant' && m.parts.length > 0
   );
 
-  // Clear forceStatic once AI responds successfully (user "escaped" static mode)
   useEffect(() => {
     if (forceStatic && hasSuccessfulResponse) setForceStatic(false);
   }, [forceStatic, hasSuccessfulResponse]);
 
   const showStaticFallback = forceStatic || (hasError && !hasSuccessfulResponse);
-
-  // Input is visible when not loading (even in static fallback for retry)
   const showInput = !isLoading;
 
-  // Override input config when in static fallback
   const activeInputConfig = showStaticFallback
-    ? { position: 'bottom-center' as const, style: 'dark-glass' as const }
+    ? { position: 'bottom-center' as const, style: 'ghost' as const }
     : inputConfig;
 
   const shellDisabled = showStaticFallback;
 
+  const ambientMessage = !isLoading && !isWelcome
+    ? proactiveResponse.ambientMessage ?? undefined
+    : undefined;
+
+  const isContentHighlighted = proactiveResponse.highlightZones.includes('main-content');
+  const isSearching = behaviorState.cursorSpeed === 'searching';
+
+  // Derive active category for ContentPillars
+  const activeCategory = entry?.meta.category ?? null;
+  const visitedCategoryList = useMemo(() =>
+    [...new Set(usedTemplates.map(id => templateRegistry[id]?.meta.category).filter(Boolean))] as string[],
+    [usedTemplates]
+  );
+
   return (
     <>
-      <TemplateShell accentIndex={visualSeed.accentIndex} disabled={shellDisabled} centerAttract={isWelcome}>
-        <AnimatePresence mode="wait">
+      <TemplateShell
+        accentIndex={visualSeed.accentIndex}
+        disabled={shellDisabled}
+        centerAttract={isWelcome}
+        glowIntensity={proactiveResponse.glowIntensity}
+        particleAttraction={proactiveResponse.particleAttraction}
+      >
+        <AnimatePresence mode="sync">
           {showStaticFallback ? (
             <motion.div
               key="static-fallback"
@@ -189,28 +305,73 @@ export function Canvas() {
               animate="animate"
               exit="exit"
               transition={config}
-              className={`absolute top-0 left-0 right-0 ${isWelcome ? 'bottom-0' : 'bottom-[72px]'}`}
+              className="absolute inset-0"
               style={{ transformStyle: 'preserve-3d' }}
             >
-              {TemplateComponent ? (
-                <TemplateComponent
-                  data={templateData}
-                  commentary={commentary}
-                  visualSeed={visualSeed}
-                />
-              ) : (
+              {isWelcome ? (
                 <WelcomeMinimalInput
                   data={null}
                   commentary=""
                   visualSeed={visualSeed}
-                  idleStage={idleStage}
+                  idleStage={behaviorState.idleStage}
                   onKeywordClick={handleKeywordClick}
                 />
-              )}
+              ) : TemplateComponent ? (
+                <TemplateComponent
+                  data={templateData}
+                  commentary={commentary}
+                  visualSeed={visualSeed}
+                  ambientMessage={ambientMessage}
+                />
+              ) : null}
+
+              {!isWelcome && <AmbientWhisper message={ambientMessage} />}
+
+              <AnimatePresence>
+                {isContentHighlighted && !isWelcome && (
+                  <motion.div
+                    key="content-highlight"
+                    className="absolute inset-0 pointer-events-none z-30 rounded-2xl"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8 }}
+                    style={{
+                      boxShadow: 'inset 0 0 60px rgba(139,92,246,0.04), inset 0 0 20px rgba(6,182,212,0.03)',
+                    }}
+                  />
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
       </TemplateShell>
+
+      {/* Navigation pillars — visible when template is showing */}
+      <AnimatePresence>
+        {!isWelcome && !showStaticFallback && !isLoading && (
+          <ContentPillars
+            activeCategory={activeCategory}
+            visitedCategories={visitedCategoryList}
+            onNavigate={handlePillarNavigate}
+            accentIndex={visualSeed.accentIndex}
+            isSearching={isSearching}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Dwell highlight overlay */}
+      {!isWelcome && <DwellHighlight dwellTarget={behaviorState.dwellTarget} />}
+
+      {/* Content fade gradient at bottom — blends content into input area */}
+      {!isWelcome && !showStaticFallback && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none z-40"
+          style={{
+            background: 'linear-gradient(to bottom, transparent, var(--background))',
+          }}
+        />
+      )}
 
       {/* Input dissolves out on send, materializes back after response */}
       <AnimatePresence>
@@ -218,9 +379,9 @@ export function Canvas() {
           <motion.div
             key="input-wrapper"
             className="absolute inset-0 z-50 pointer-events-none"
-            initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: 24, scale: 0.92, filter: 'blur(10px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
               duration: 0.5,
               ease: [0.22, 1, 0.36, 1] as const,
@@ -231,6 +392,13 @@ export function Canvas() {
               style={activeInputConfig.style}
               sendMessage={handleSend}
               isLoading={isLoading}
+              suggestedKeywords={
+                proactiveResponse.suggestedKeywords.length > 0
+                  ? proactiveResponse.suggestedKeywords
+                  : undefined
+              }
+              onFocusIdleChange={handleFocusIdleChange}
+              isSearching={isSearching}
             />
           </motion.div>
         )}

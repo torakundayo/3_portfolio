@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface QaItem {
   question: string;
@@ -63,6 +63,7 @@ function parseQa(text: string): QaItem[] {
 export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const qaItems = parseQa(commentary || '');
   // Limit to first 4 items for viewport fitting
@@ -70,7 +71,7 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950 relative">
+    <div className="h-full w-full overflow-hidden bg-white relative">
       {/* CSS keyframe bg blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -85,8 +86,8 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
         {/* Header */}
         <motion.div
           className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           <div className="flex items-center gap-3 mb-2">
@@ -122,16 +123,16 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
                 className="border overflow-hidden transition-colors duration-300"
                 style={{
                   borderRadius: organicRadius,
-                  borderColor: isOpen ? `${palette.primary}40` : 'rgba(255,255,255,0.08)',
-                  backgroundColor: isOpen ? `${palette.primary}08` : 'rgba(255,255,255,0.03)',
+                  borderColor: isOpen ? `${palette.primary}40` : 'rgba(229,231,235,1)',
+                  backgroundColor: isOpen ? `${palette.primary}08` : 'rgba(249,250,251,1)',
                   ...revealStyle(i),
                   transform: 'translateZ(15px)',
                 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{
                   ...SPRING_ENTER,
-                  delay: baseDelay + 0.1 * i,
+                  delay: baseDelay + stagger * i,
                 }}
               >
                 {/* Question header */}
@@ -143,7 +144,7 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
                   <span
                     className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold mt-0.5 transition-colors duration-300"
                     style={{
-                      backgroundColor: isOpen ? `${palette.primary}20` : 'rgba(255,255,255,0.06)',
+                      backgroundColor: isOpen ? `${palette.primary}20` : 'rgba(243,244,246,1)',
                       color: isOpen ? palette.primary : '#94a3b8',
                     }}
                   >
@@ -151,7 +152,7 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
                   </span>
 
                   <span
-                    className="flex-1 text-base font-semibold text-gray-200 group-hover:text-gray-100 transition-colors leading-relaxed"
+                    className="flex-1 text-base font-semibold text-gray-900 group-hover:text-gray-800 transition-colors leading-relaxed"
                     style={{ transform: 'translateZ(15px)' }}
                   >
                     {item.question}
@@ -191,7 +192,7 @@ export function TextQaFormat({ commentary, visualSeed }: TemplateProps) {
                           style={{ backgroundColor: `${palette.primary}15` }}
                         />
                         <div
-                          className="prose prose-sm prose-invert max-w-none"
+                          className="prose prose-sm max-w-none"
                           style={{ transform: 'translateZ(15px)' }}
                         >
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>

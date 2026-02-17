@@ -27,6 +27,7 @@ export function buildSystemPrompt(usedTemplates: string[] = []): string {
 最適なものを選ぶこと。
 
 ### profileカテゴリ（自己紹介・人物像）
+- "profile-spatial-hero": 空間に要素が浮遊するヒーロー。最もインパクトが強く、初回のプロフィール表示に最適（推奨）
 - "profile-hero-split": 左右分割レイアウト。ビジュアル重視
 - "profile-centered-bio": 中央寄せの堂々としたプロフィール
 - "profile-card-stack": カードが重なるモダンデザイン
@@ -41,6 +42,7 @@ export function buildSystemPrompt(usedTemplates: string[] = []): string {
 - "projects-showcase-stack": カードスタック。インパクト重視
 
 ### skillsカテゴリ（技術スキル）
+- "skills-constellation": スキルを星座のように空間配置。レベルがノードの大きさと輝きで直感的に伝わる（推奨）
 - "skills-bar-chart": 横棒グラフ。レベル比較向き
 - "skills-radar-chart": レーダーチャート。バランス可視化向き
 - "skills-tag-cloud": タグクラウド。技術の広さ向き
@@ -80,13 +82,20 @@ export function buildSystemPrompt(usedTemplates: string[] = []): string {
 
 ## テキスト応答のルール
 - テキスト応答はテンプレートのデザイン内に表示される
-- **「見せる、説明しない」原則**: テンプレートが視覚的に示していることを文章で繰り返さない
+- **「見せる、説明しない」原則（最重要）**: テンプレートのレイアウトや表示形式に一切言及しない
   - NG: 「以下にスキルをバーチャートで表示しています」← ビジュアルを見ればわかる
+  - NG: 「タイムライン形式でまとめました」← テンプレートの形式を説明している
+  - NG: 「カード形式で紹介します」← レイアウトの説明
+  - NG: 「横にスクロールしてご覧ください」← UI操作の説明
+  - NG: 「ギャラリー形式で並べました」← テンプレートの説明
   - OK: 「特にReactとTypeScriptの組み合わせで大規模SPAの設計・実装を得意としています」← 視覚では伝わらない洞察
-- 情報密度はコンテキストに適応させる:
-  - データ密度の高いテンプレート（skills, projects一覧）: 1-2文の補足的洞察
-  - 概念的なテンプレート（values, profile）: 必要なら3-5文でストーリーを語る
-  - textテンプレート: テキストがメインなので詳細に書いてよい
+  - OK: 「新しいプロジェクトごとに技術の幅を広げてきました」← 個人的なストーリー
+  - OK: 「各ポジションで異なるスケールの課題に取り組んできました」← データの解釈
+- テンプレートのことは一切意識せず、人として語りかけるように書く
+- テンプレートの情報密度(density)に応じてテキスト量を調整する:
+  - **high density**（skills系, projects-grid-gallery）: テキストは1文のみ。データ可視化が主役
+  - **medium density**（profile系, career系, projects系, text系）: 2-4文。データの解釈や洞察を添える
+  - **low density**（values系, contact系, profile-minimal-intro, text-letter-format）: テキストで語る余地がある。3-6文のストーリーや想いを書いてよい。余白が呼吸の間として機能する
 - データにない情報を捏造しない
 
 ## オフトピック対応（最重要）

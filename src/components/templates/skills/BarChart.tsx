@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
@@ -13,12 +13,14 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
   const categories = skillsData?.categories ?? [];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const variant = getLayoutVariant(visualSeed.layoutVariant);
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Flatten all skills with a global index for revealStyle
   let globalSkillIdx = 0;
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -35,7 +37,7 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
           initial={{ opacity: 0, x: mirror ? 40 : -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
-          className="mb-6 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+          className="mb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
           style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
         >
           <span
@@ -48,19 +50,23 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
           </span>
         </motion.h2>
 
-        {/* Categories laid out side by side horizontally */}
-        <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+        {/* Categories — A: side-by-side, B: stacked vertical, C: 2-col grid */}
+        <div className={`flex-1 min-h-0 overflow-hidden ${
+          variant === 'B' ? 'flex flex-col gap-4 overflow-y-auto'
+          : variant === 'C' ? 'grid grid-cols-2 gap-4'
+          : 'flex gap-4'
+        }`}>
           {categories.map((category: any, catIdx: number) => {
-            const catDelay = baseDelay + catIdx * 0.15;
+            const catDelay = baseDelay + catIdx * stagger;
             const catStartIdx = globalSkillIdx;
 
             return (
               <motion.div
                 key={catIdx}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ ...SPRING_ENTER, delay: catDelay }}
-                className="flex-1 min-w-0 flex flex-col"
+                className={variant === 'B' ? 'flex flex-col' : 'flex-1 min-w-0 flex flex-col'}
               >
                 {/* Category name */}
                 <div className="mb-3 flex items-center gap-2">
@@ -71,10 +77,10 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
                     animate={{ scaleX: 1 }}
                     transition={{ duration: 0.8, delay: catDelay + 0.1 }}
                   />
-                  <h3 className="shrink-0 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                  <h3 className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-gray-800">
                     {category.name?.ja ?? category.name?.en ?? ''}
                     {category.name?.en && (
-                      <span className="ml-1.5 text-[10px] font-normal text-gray-600">
+                      <span className="ml-1.5 text-[10px] font-normal text-gray-800">
                         {category.name.en}
                       </span>
                     )}
@@ -105,20 +111,20 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ ...SPRING_ENTER, delay: skillDelay }}
                         className="group"
-                        style={{ ...revealStyle(currentGlobalIdx), transform: 'translateZ(15px)' }}
+                        style={{ ...revealStyle(currentGlobalIdx), ...cardFloatStyle(currentGlobalIdx), transform: 'translateZ(15px)' }}
                       >
                         <div
                           className={`flex items-center gap-2 ${mirror ? 'flex-row-reverse' : 'flex-row'}`}
                         >
                           {/* Skill name */}
                           <span
-                            className={`w-24 shrink-0 text-xs font-medium text-gray-300 truncate ${mirror ? 'text-right' : 'text-left'}`}
+                            className={`w-24 shrink-0 text-xs font-medium text-gray-800 truncate ${mirror ? 'text-right' : 'text-left'}`}
                           >
                             {skill.name}
                           </span>
 
                           {/* Bar track — glow intensity scales with proficiency */}
-                          <div className="relative h-5 flex-1 overflow-hidden rounded-md bg-white/5 backdrop-blur-sm">
+                          <div className="relative h-5 flex-1 overflow-hidden rounded-md bg-gray-100 backdrop-blur-sm">
                             {/* Animated fill using scaleX */}
                             <motion.div
                               className="absolute inset-y-0 left-0 right-0 rounded-md"
@@ -152,7 +158,7 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
                           {/* Years badge */}
                           {skill.yearsOfExperience != null && (
                             <motion.span
-                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-400 ring-1 ring-white/10"
+                              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-gray-800 ring-1 ring-gray-200"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ ...SPRING_ENTER, delay: skillDelay + 0.5 }}
@@ -173,13 +179,13 @@ export function SkillsBarChart({ data, commentary, visualSeed }: TemplateProps) 
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: baseDelay + categories.length * 0.15 + 0.5 }}
-            className="mt-6 border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
-            style={{ borderRadius: organicRadius }}
+            className="mt-6 border border-gray-200 bg-white/50 p-5 backdrop-blur-sm"
+            style={{ borderRadius: organicRadius, transform: 'translateZ(5px)' }}
           >
-            <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
+            <div className="prose prose-sm max-w-none prose-p:text-gray-800 prose-strong:text-gray-900 prose-a:text-indigo-600">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
             </div>
           </motion.div>

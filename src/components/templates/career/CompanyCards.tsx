@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface CareerEntry {
   company: { ja: string; en: string };
@@ -20,9 +20,10 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
   const d = data as any;
   const history: CareerEntry[] = d?.history ?? [];
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-white">
       {/* CSS keyframe background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -33,9 +34,9 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
                    animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8 h-full flex flex-col">
+      <div className="max-w-5xl mx-auto px-6 py-8 h-full flex flex-col justify-center">
         {/* Compact grid — smaller cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {history.map((entry, i) => (
             <motion.div
               key={i}
@@ -45,7 +46,7 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
               animate={{ opacity: 1, scale: 1 }}
               transition={{
                 ...SPRING_ENTER,
-                delay: baseDelay + 0.1 * i,
+                delay: baseDelay + stagger * i,
               }}
             >
               {/* Accent border gradient */}
@@ -59,7 +60,7 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
 
               {/* Card inner — glassmorphism + organic */}
               <div
-                className="relative backdrop-blur-xl bg-white/[0.06] border border-white/10 p-5"
+                className="relative backdrop-blur-xl bg-white/[0.06] border border-gray-200 p-5"
                 style={{ borderRadius: organicRadius, transform: 'translateZ(20px)' }}
               >
                 {/* Glow on hover */}
@@ -88,13 +89,13 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
 
                   {/* Company name */}
                   <h3
-                    className="text-lg font-bold text-white mb-0.5"
+                    className="text-lg font-bold text-gray-900 mb-0.5"
                     style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                   >
                     {entry.company?.ja ?? entry.company?.en ?? ''}
                   </h3>
                   {entry.company?.en && (
-                    <p className="text-xs text-gray-500 mb-2">{entry.company.en}</p>
+                    <p className="text-sm text-gray-800 mb-2">{entry.company.en}</p>
                   )}
 
                   {/* Role */}
@@ -107,24 +108,23 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
 
                   {/* Description — line-clamp for compactness */}
                   {(entry.description?.ja || entry.description?.en) && (
-                    <p className="text-xs text-gray-400 leading-relaxed mb-3 line-clamp-2">
+                    <p className="text-sm text-gray-800 leading-relaxed mb-3 line-clamp-2">
                       {entry.description?.ja ?? entry.description?.en}
                     </p>
                   )}
 
                   {/* Highlights */}
                   {(entry.highlights?.ja?.length || entry.highlights?.en?.length) ? (
-                    <ul className="space-y-1 border-t border-white/10 pt-3">
+                    <ul className="space-y-1 border-t border-gray-200 pt-3">
                       {(entry.highlights?.ja ?? entry.highlights?.en ?? []).slice(0, 3).map((h: string, j: number) => (
                         <motion.li
                           key={j}
-                          className="flex items-start gap-2 text-xs text-gray-300"
+                          className="flex items-start gap-2 text-sm text-gray-800"
                           style={revealStyle(i * 4 + j)}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{
-                            opacity: { duration: 0.4, delay: baseDelay + 0.1 * i + 0.3 + 0.06 * j },
-                            x: { ...SPRING_ENTER, delay: baseDelay + 0.1 * i + 0.3 + 0.06 * j },
+                            opacity: { duration: 0.4, delay: baseDelay + stagger * i + 0.3 + stagger * j },
                           }}
                         >
                           <span
@@ -145,12 +145,11 @@ export function CareerCompanyCards({ data, commentary, visualSeed }: TemplatePro
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-6 prose prose-invert prose-gray prose-sm max-w-none"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 prose prose-gray prose-sm max-w-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
-              opacity: { duration: 0.6, delay: baseDelay + 0.1 * history.length + 0.4 },
-              y: { ...SPRING_ENTER, delay: baseDelay + 0.1 * history.length + 0.4 },
+              opacity: { duration: 0.6, delay: baseDelay + stagger * history.length + 0.4 },
             }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

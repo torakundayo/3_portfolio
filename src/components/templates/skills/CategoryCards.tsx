@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 /**
  * Glassmorphism card grid -- one card per skill category.
@@ -18,6 +18,7 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
   const gradientAngle = 135 + visualSeed.colorOffset * 0.5;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Level dots renderer
   const LevelDots = ({ level }: { level: number }) => (
@@ -27,19 +28,19 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
           key={i}
           className="h-1.5 w-1.5 rounded-full"
           style={{
-            backgroundColor: i < level ? palette.primary : 'rgba(255,255,255,0.1)',
+            backgroundColor: i < level ? palette.primary : 'rgba(0,0,0,0.08)',
             boxShadow: i < level ? `0 0 6px ${palette.glow}50` : 'none',
           }}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ ...SPRING_ENTER, delay: baseDelay + 0.8 + i * 0.05 }}
+          transition={{ ...SPRING_ENTER, delay: baseDelay + 0.8 + stagger * i }}
         />
       ))}
     </div>
   );
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="h-full w-full overflow-hidden bg-gradient-to-br from-white via-gray-50 to-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -53,13 +54,13 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
       <div className="relative z-10 mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-10 h-full flex flex-col">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
           className={`mb-6 ${mirror ? 'text-right' : 'text-left'}`}
         >
           <h2
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
             style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
           >
             <span
@@ -86,25 +87,25 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
         {/* Card Grid - compact, more columns */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 flex-1 min-h-0 auto-rows-min">
           {categories.map((category: any, catIdx: number) => {
-            const cardDelay = baseDelay + 0.2 + catIdx * 0.12;
+            const cardDelay = baseDelay + 0.2 + stagger * catIdx;
             const skills = category.skills ?? [];
 
             return (
               <motion.div
                 key={catIdx}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ ...SPRING_ENTER, delay: cardDelay }}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                whileHover={{ scale: 1.02, transition: { duration: 0.25 } }}
                 className="group relative overflow-hidden"
                 style={{ borderRadius: organicRadius, ...cardFloatStyle(catIdx), transform: 'translateZ(15px)' }}
               >
                 {/* Glassmorphism background with organic shape */}
                 <div
-                  className="absolute inset-0 border border-white/10"
+                  className="absolute inset-0 border border-gray-200"
                   style={{
                     borderRadius: organicRadius,
-                    background: `linear-gradient(${gradientAngle}deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`,
+                    background: `linear-gradient(${gradientAngle}deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5))`,
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                   }}
@@ -125,27 +126,19 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
                   {/* Category header */}
                   <div className="mb-3 flex items-center gap-2">
                     {/* Accent dot */}
-                    <motion.div
+                    <div
                       className="h-2.5 w-2.5 rounded-full"
                       style={{
                         backgroundColor: palette.primary,
                         boxShadow: `0 0 12px ${palette.glow}60`,
                       }}
-                      animate={{
-                        boxShadow: [
-                          `0 0 12px ${palette.glow}60`,
-                          `0 0 20px ${palette.glow}40`,
-                          `0 0 12px ${palette.glow}60`,
-                        ],
-                      }}
-                      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                     />
                     <div>
-                      <h3 className="text-sm font-semibold text-white">
+                      <h3 className="text-sm font-semibold text-gray-900">
                         {category.name?.ja ?? category.name?.en ?? ''}
                       </h3>
                       {category.name?.en && category.name?.ja && (
-                        <p className="text-[10px] text-gray-500">{category.name.en}</p>
+                        <p className="text-[10px] text-gray-800">{category.name.en}</p>
                       )}
                     </div>
                   </div>
@@ -158,18 +151,18 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
                       return (
                         <motion.div
                           key={skillIdx}
-                          initial={{ opacity: 0, x: mirror ? 10 : -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ ...SPRING_ENTER, delay: cardDelay + 0.15 + skillIdx * 0.05 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ ...SPRING_ENTER, delay: cardDelay + 0.15 + stagger * skillIdx }}
                           className="flex items-center justify-between"
                           style={revealStyle(catIdx * 10 + skillIdx)}
                         >
                           <div className="flex flex-col">
-                            <span className="text-xs font-medium text-gray-200">
+                            <span className="text-xs font-medium text-gray-800">
                               {skill.name}
                             </span>
                             {skill.yearsOfExperience != null && (
-                              <span className="text-[9px] text-gray-500">
+                              <span className="text-[9px] text-gray-800">
                                 {skill.yearsOfExperience}yr
                               </span>
                             )}
@@ -181,8 +174,8 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
                   </div>
 
                   {/* Skill count footer - compact */}
-                  <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2">
-                    <span className="text-[10px] text-gray-600">
+                  <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-2">
+                    <span className="text-[10px] text-gray-800">
                       {skills.length} skill{skills.length !== 1 ? 's' : ''}
                     </span>
                     <span
@@ -203,13 +196,13 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: baseDelay + categories.length * 0.12 + 0.6 }}
-            className="mt-4 border border-white/10 bg-white/5 p-5 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: baseDelay + categories.length * stagger + 0.6 }}
+            className="mt-4 border border-gray-200 bg-white/50 p-5 backdrop-blur-sm"
             style={{ borderRadius: organicRadius }}
           >
-            <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-400 prose-strong:text-gray-200 prose-a:text-indigo-400">
+            <div className="prose prose-sm max-w-none prose-p:text-gray-800 prose-strong:text-gray-900 prose-a:text-indigo-600">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
             </div>
           </motion.div>

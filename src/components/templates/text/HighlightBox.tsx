@@ -5,12 +5,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
   const gradientAngle = 135 + visualSeed.colorOffset * 0.3;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Extract first sentence/paragraph as the highlight pull-quote
   const lines = (commentary || '').split('\n').filter((l) => l.trim());
@@ -18,7 +19,7 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
   const remaining = lines.slice(1).join('\n');
 
   return (
-    <div className="h-full w-full overflow-hidden flex flex-col items-center justify-center bg-gray-950 relative">
+    <div className="h-full w-full overflow-hidden flex flex-col items-center justify-center bg-white relative">
       {/* CSS keyframe bg blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -58,8 +59,8 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
                 color: `${palette.primary}35`,
                 transform: 'translateZ(-20px)',
               }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: baseDelay + 0.2, duration: 0.6 }}
             >
               &ldquo;
@@ -73,8 +74,8 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
                 ...breatheStyle(0),
                 transform: 'translateZ(30px)',
               }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ ...SPRING_ENTER, delay: baseDelay + 0.3 }}
             >
               {highlight}
@@ -100,9 +101,9 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
         {/* Remaining text */}
         {remaining && (
           <motion.div
-            className="prose prose-lg prose-invert max-w-none leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="prose prose-lg max-w-none leading-relaxed"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ ...SPRING_ENTER, delay: baseDelay + 0.6 }}
             style={{ transform: 'translateZ(15px)' }}
           >
@@ -110,13 +111,13 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
               remarkPlugins={[remarkGfm]}
               components={{
                 p: ({ children }) => (
-                  <p className="text-gray-300" style={revealStyle(0)}>
+                  <p className="text-gray-800" style={revealStyle(0)}>
                     {children}
                   </p>
                 ),
                 h1: ({ children }) => (
                   <h1
-                    className="text-gray-100"
+                    className="text-gray-900"
                     style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                   >
                     {children}
@@ -124,7 +125,7 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
                 ),
                 h2: ({ children }) => (
                   <h2
-                    className="text-gray-100"
+                    className="text-gray-900"
                     style={{ ...breatheStyle(1), transform: 'translateZ(40px)' }}
                   >
                     {children}
@@ -132,7 +133,7 @@ export function TextHighlightBox({ commentary, visualSeed }: TemplateProps) {
                 ),
                 blockquote: ({ children }) => (
                   <blockquote
-                    className="border-l-2 pl-4 italic text-gray-400"
+                    className="border-l-2 pl-4 italic text-gray-800"
                     style={{
                       ...breatheStyle(1),
                       transform: 'translateZ(30px)',

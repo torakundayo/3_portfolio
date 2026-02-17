@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -23,9 +23,11 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
   const projects: Project[] = projectsData?.projects ?? [];
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
+  const variant = getLayoutVariant(visualSeed.layoutVariant);
+  const { stagger, reverse } = seededStagger(visualSeed.colorOffset);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-zinc-950 flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col">
       {/* CSS keyframe background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -40,12 +42,13 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const } }}
             className="mb-5 flex-shrink-0"
+            style={{ transform: 'translateZ(5px)' }}
           >
-            <div className="max-w-3xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-400 prose-headings:text-white prose-strong:text-white">
+            <div className="max-w-3xl mx-auto prose prose-sm prose-p:text-gray-800 prose-strong:text-gray-900">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {commentary}
               </ReactMarkdown>
@@ -53,29 +56,35 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
           </motion.div>
         )}
 
-        {/* 2-column masonry-style grid */}
-        <div className="max-w-4xl mx-auto w-full grid grid-cols-2 gap-4 pb-20">
-          {projects.map((project, i) => {
+        {/* Grid — A: 2-col masonry, B: featured first + small rest, C: 3-col compact */}
+        <div className={`max-w-4xl mx-auto w-full gap-4 pb-20 ${
+          variant === 'C' ? 'grid grid-cols-3' : 'grid grid-cols-2'
+        }`}>
+          {(reverse ? [...projects].reverse() : projects).map((project, i) => {
             const tagline = project.tagline?.en || project.tagline?.ja || '';
             const description = project.description?.en || project.description?.ja || '';
-            // Alternate between tall and compact cards for visual rhythm
-            const isTall = i % 3 === 0;
+            // A: alternating masonry, B: first project spans full width, C: all compact
+            const isTall = variant === 'B' ? i === 0 : variant === 'C' ? false : i % 3 === 0;
+            const isFullWidth = variant === 'B' && i === 0;
 
             return (
               <motion.div
                 key={project.name}
-                initial={{ opacity: 0, y: 30, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{
-                  opacity: { duration: 0.6, delay: baseDelay + 0.1 * i, ease: [0.22, 1, 0.36, 1] as const },
-                  y: { ...SPRING_ENTER, delay: i * 0.08 },
+                  opacity: { duration: 0.6, delay: baseDelay + stagger * i, ease: [0.22, 1, 0.36, 1] as const },
                   scale: { ...SPRING_ENTER, delay: i * 0.08 },
                 }}
-                className={`group ${isTall ? 'row-span-2' : ''}`}
+                whileHover={{
+                  scale: 1.03,
+                  transition: { duration: 0.3 },
+                }}
+                className={`group ${isFullWidth ? 'col-span-2 row-span-2' : isTall ? 'row-span-2' : ''}`}
                 style={{ ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
               >
                 <div
-                  className={`relative border backdrop-blur-xl bg-white/5 p-4 overflow-hidden transition-all duration-500 hover:bg-white/8 cursor-default h-full flex flex-col ${
+                  className={`relative border backdrop-blur-xl bg-gray-50/5 p-4 overflow-hidden transition-all duration-500 hover:bg-gray-50/8 cursor-default h-full flex flex-col ${
                     isTall ? 'min-h-[280px]' : 'min-h-[160px]'
                   }`}
                   style={{
@@ -119,7 +128,7 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
                       </span>
                     )}
                     <h3
-                      className="text-base font-bold text-white tracking-tight"
+                      className="text-base font-bold text-gray-900 tracking-tight"
                       style={{ ...breatheStyle(i), transform: 'translateZ(40px)' }}
                     >
                       {project.name}
@@ -135,7 +144,7 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
 
                   {/* Description (tall cards only) */}
                   {description && isTall && (
-                    <p className="text-[11px] text-zinc-500 mb-2 leading-relaxed line-clamp-3">
+                    <p className="text-[11px] text-gray-800 mb-2 leading-relaxed line-clamp-3">
                       {description}
                     </p>
                   )}
@@ -156,7 +165,7 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
                   )}
 
                   {/* Links */}
-                  <div className="flex gap-3 mt-auto pt-1 border-t border-white/5">
+                  <div className="flex gap-3 mt-auto pt-1 border-t border-gray-200">
                     {project.url && (
                       <a href={project.url} target="_blank" rel="noopener noreferrer"
                         className="text-[11px] font-medium transition-colors duration-300 hover:underline"
@@ -166,7 +175,7 @@ export function ProjectsGridGallery({ data, commentary, visualSeed }: TemplatePr
                     )}
                     {project.github && (
                       <a href={project.github} target="_blank" rel="noopener noreferrer"
-                        className="text-[11px] font-medium text-zinc-600 hover:text-zinc-400 transition-colors duration-300 hover:underline">
+                        className="text-[11px] font-medium text-gray-800 hover:text-gray-900 transition-colors duration-300 hover:underline">
                         Source
                       </a>
                     )}

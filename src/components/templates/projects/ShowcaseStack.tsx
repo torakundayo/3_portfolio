@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface Project {
   name: string;
@@ -24,6 +24,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
   const mirrorLayout = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Limit to max 4 cards
   const visibleProjects = projects.slice(0, 4);
@@ -44,7 +45,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
   };
 
   return (
-    <div className="h-full w-full overflow-hidden bg-zinc-950 flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col">
       {/* CSS keyframe background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -68,12 +69,12 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
         {/* Commentary */}
         {commentary && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const }, y: { ...SPRING_ENTER, delay: baseDelay } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ opacity: { duration: 0.7, delay: baseDelay, ease: [0.22, 1, 0.36, 1] as const } }}
             className="mb-4 text-center w-full flex-shrink-0"
           >
-            <div className="max-w-xl mx-auto prose prose-sm prose-invert prose-p:text-zinc-400 prose-headings:text-white">
+            <div className="max-w-xl mx-auto prose prose-sm prose-p:text-gray-800">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {commentary}
               </ReactMarkdown>
@@ -86,7 +87,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
           <div className="relative w-full h-full">
             {visibleProjects.map((project, i) => {
               const fan = getFanTransform(i, visibleProjects.length);
-              const cardDelay = baseDelay + 0.2 + i * 0.15;
+              const cardDelay = baseDelay + 0.2 + stagger * i;
               const tagline = project.tagline?.en || project.tagline?.ja || '';
               const description = project.description?.en || project.description?.ja || '';
               const zIndex = visibleProjects.length - i;
@@ -102,34 +103,27 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                     opacity: 0,
                     scale: 0.85,
                     rotate: 0,
-                    y: 40,
                   }}
                   animate={{
                     opacity: 1,
                     scale: 1,
                     rotate: fan.rotate,
-                    x: fan.x,
-                    y: fan.y,
                   }}
                   transition={{
                     opacity: { duration: 0.8, delay: cardDelay, ease: [0.22, 1, 0.36, 1] as const },
-                    scale: { ...SPRING_ENTER, delay: i * 0.12 },
-                    rotate: { ...SPRING_ENTER, delay: i * 0.12 },
-                    x: { ...SPRING_ENTER, delay: i * 0.12 },
-                    y: { ...SPRING_ENTER, delay: i * 0.12 },
+                    scale: { ...SPRING_ENTER, delay: stagger * i },
+                    rotate: { ...SPRING_ENTER, delay: stagger * i },
                   }}
                   whileHover={{
                     scale: 1.04,
                     rotate: 0,
-                    x: 0,
-                    y: -10,
                     zIndex: 50,
                     transition: { ...SPRING_ENTER },
                   }}
-                  style={{ zIndex, ...revealStyle(i), ...cardFloatStyle(i), transform: 'translateZ(20px)' }}
+                  style={{ zIndex, ...revealStyle(i), ...cardFloatStyle(i), transform: `translateZ(20px) translateX(${fan.x}px) translateY(${fan.y}px)` }}
                 >
                   <div
-                    className="relative h-full border border-white/10 backdrop-blur-xl bg-black/20 p-5 overflow-hidden transition-shadow duration-500"
+                    className="relative h-full border border-gray-200 backdrop-blur-xl bg-white/20 p-5 overflow-hidden transition-shadow duration-500"
                     style={{
                       borderRadius: organicRadius,
                       boxShadow: `
@@ -190,7 +184,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                       </div>
 
                       <h3
-                        className="text-lg font-black text-white mb-1 tracking-tight"
+                        className="text-lg font-black text-gray-900 mb-1 tracking-tight"
                         style={{ ...breatheStyle(i), transform: 'translateZ(40px)' }}
                       >
                         {project.name}
@@ -206,7 +200,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                       )}
 
                       {description && (
-                        <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed line-clamp-2">
+                        <p className="text-[11px] text-gray-800 mb-3 leading-relaxed line-clamp-2">
                           {description}
                         </p>
                       )}
@@ -228,7 +222,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                             </span>
                           ))}
                           {project.stack.length > 4 && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600">
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-800">
                               +{project.stack.length - 4}
                             </span>
                           )}
@@ -257,7 +251,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
                             href={project.github}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-medium px-3 py-1 rounded-lg border border-white/10 text-zinc-500 hover:text-white hover:border-white/20 transition-all duration-300"
+                            className="text-xs font-medium px-3 py-1 rounded-lg border border-gray-200 text-gray-800 hover:text-gray-900 hover:border-gray-200 transition-all duration-300"
                           >
                             Source
                           </a>
@@ -276,7 +270,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: baseDelay + 0.2 + visibleProjects.length * 0.15 + 0.5, duration: 0.5 }}
+            transition={{ delay: baseDelay + 0.2 + visibleProjects.length * stagger + 0.5, duration: 0.5 }}
             className="flex items-center gap-2 mt-4 mb-2"
           >
             {visibleProjects.map((_, i) => (
@@ -296,7 +290,7 @@ export function ProjectsShowcaseStack({ data, commentary, visualSeed }: Template
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: baseDelay + 1.5, duration: 0.5 }}
-          className="text-[11px] text-zinc-700 tracking-wider"
+          className="text-[11px] text-gray-800 tracking-wider"
         >
           hover cards to explore
         </motion.p>

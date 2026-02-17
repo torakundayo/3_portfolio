@@ -6,12 +6,13 @@ import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin } from 'lucide-react';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const email = d?.email ?? '';
   const github = d?.github ?? '';
@@ -24,7 +25,7 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
   ].filter(Boolean) as { href: string; icon: typeof Github; label: string }[];
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950 flex flex-col items-center justify-center relative">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col items-center justify-center relative">
       {/* CSS keyframe background drifts (cyan/violet) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ transform: 'translateZ(-20px)' }}>
         <div
@@ -50,13 +51,13 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
       <div className="max-w-2xl w-full px-8 py-16 text-center">
         {/* Large CTA text — ai-breathe on main heading */}
         <motion.h2
-          className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight tracking-tight"
+          className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight tracking-tight"
           style={{
             ...breatheStyle(0),
             transform: 'translateZ(40px)',
           }}
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
         >
           {message || "Let's Connect"}
@@ -82,20 +83,10 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
                 backgroundColor: `${palette.primary}10`,
                 borderRadius: organicRadius,
                 transform: 'translateZ(30px)',
+                boxShadow: `0 0 20px ${palette.glow}10, 0 0 40px ${palette.primary}05`,
               }}
               whileHover={{
                 scale: 1.03,
-                boxShadow: `0 0 40px ${palette.glow}30, 0 0 80px ${palette.primary}15`,
-              }}
-              animate={{
-                boxShadow: [
-                  `0 0 20px ${palette.glow}10, 0 0 40px ${palette.primary}05`,
-                  `0 0 30px ${palette.glow}20, 0 0 60px ${palette.primary}10`,
-                  `0 0 20px ${palette.glow}10, 0 0 40px ${palette.primary}05`,
-                ],
-              }}
-              transition={{
-                boxShadow: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
               }}
             >
               <Mail className="w-6 h-6" />
@@ -107,8 +98,8 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
         {/* Secondary links — ai-reveal on each */}
         <motion.div
           className="flex items-center justify-center gap-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: baseDelay + 0.6 }}
         >
           {secondaryLinks.map((link, i) => {
@@ -119,12 +110,12 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 group"
+                className="flex items-center gap-2 text-gray-800 hover:text-gray-900 transition-colors duration-300 group"
                 style={{
                   ...revealStyle(i + 1),
                   transform: 'translateZ(30px)',
                 }}
-                whileHover={{ y: -2 }}
+                whileHover={{ scale: 1.05 }}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-sm tracking-wide">{link.label}</span>
@@ -136,10 +127,10 @@ export function ContactFullscreenCta({ data, commentary, visualSeed }: TemplateP
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-16 prose prose-invert prose-gray prose-sm max-w-none"
+            className="mt-16 prose prose-gray prose-sm max-w-none"
             style={{ transform: 'translateZ(20px)' }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: baseDelay + 0.9 }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

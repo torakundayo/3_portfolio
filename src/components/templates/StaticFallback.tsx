@@ -121,16 +121,6 @@ function FloatingNode({
     return () => clearTimeout(t);
   }, [delay]);
 
-  const drift = useMemo(() => {
-    const r = seededRandom(seed);
-    return {
-      dx: [(r() - 0.5) * 30, (r() - 0.5) * 24, (r() - 0.5) * 28],
-      dy: [(r() - 0.5) * 26, (r() - 0.5) * 30, (r() - 0.5) * 22],
-      dur: 22 + r() * 14,
-      rot: (r() - 0.5) * 5,
-    };
-  }, [seed]);
-
   const handleClick = useCallback((e: React.MouseEvent) => {
     if (!onClick) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -156,8 +146,8 @@ function FloatingNode({
       style={{ left: '50%', top: '50%', x: `calc(${xVw}vw - 50%)`, y: `calc(${yVh}vh - 50%)` }}
       initial={{ opacity: 0, scale: 0.1 }}
       animate={{
-        opacity: isHidden ? 0 : isDimmed ? 0.35 : 1,
-        scale: isHidden ? 0.3 : isHovered ? scale * 1.12 : scale,
+        opacity: isHidden ? 0 : 1,
+        scale: isHidden ? 0.3 : scale,
       }}
       transition={(entered || interacted) ? liveTransition : entryTransition}
       onMouseEnter={onHover}
@@ -176,16 +166,9 @@ function FloatingNode({
       }}
     >
       {interactive && <div className="absolute -inset-10" aria-hidden="true" />}
-      <motion.div
-        animate={{
-          x: [0, drift.dx[0], drift.dx[1], drift.dx[2], 0],
-          y: [0, drift.dy[0], drift.dy[1], drift.dy[2], 0],
-          rotate: [0, drift.rot, -drift.rot * 0.6, drift.rot * 0.4, 0],
-        }}
-        transition={{ duration: drift.dur, repeat: Infinity, ease: 'easeInOut' }}
-      >
+      <div>
         {children}
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
@@ -233,7 +216,7 @@ function AmbientParticles({ count = 18, palette }: { count?: number; palette: Ac
           style={{
             width: p.size, height: p.size,
             left: `calc(50% + ${p.x}vw)`, top: `calc(50% + ${p.y}vh)`,
-            background: p.glow ? `rgba(${hexToRgb(palette.primary)},${p.op * 2.5})` : `rgba(255,255,255,${p.op})`,
+            background: p.glow ? `rgba(${hexToRgb(palette.primary)},${p.op * 2.5})` : `rgba(0,0,0,${p.op})`,
             boxShadow: p.glow ? `0 0 ${p.size * 6}px rgba(${hexToRgb(palette.primary)},${p.op})` : undefined,
           }}
           animate={{
@@ -419,7 +402,7 @@ function ExpandedNodeContent({
     <>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-[100] bg-gray-950/80"
+        className="fixed inset-0 z-[100] bg-white/80"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
         onClick={onClose}
@@ -430,7 +413,7 @@ function ExpandedNodeContent({
         className="fixed z-[101] overflow-y-auto pointer-events-auto"
         layoutId={`node-shell-${nodeId}`}
         style={{
-          background: `radial-gradient(ellipse at 30% 20%, rgba(${rgb},0.14) 0%, rgba(255,255,255,0.03) 50%, rgba(0,0,0,0.4) 100%)`,
+          background: `radial-gradient(ellipse at 30% 20%, rgba(${rgb},0.14) 0%, rgba(249,250,251,0.95) 50%, rgba(255,255,255,0.9) 100%)`,
           borderRadius: organicRadius,
           boxShadow: `0 0 120px rgba(${rgb},0.1), 0 20px 60px rgba(0,0,0,0.5)`,
           inset: '5vh 5vw',
@@ -443,7 +426,7 @@ function ExpandedNodeContent({
         <div className="p-8 md:p-12 max-w-3xl mx-auto">
           {/* Close hint */}
           <motion.button
-            className="absolute top-4 right-6 text-white/30 hover:text-white/70 transition-colors text-sm"
+            className="absolute top-4 right-6 text-gray-400 hover:text-gray-600 transition-colors text-sm"
             onClick={onClose}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -464,10 +447,10 @@ function ExpandedNodeContent({
               )}
               <h2 className="text-3xl md:text-4xl font-bold" style={breatheStyle(0)}>{proj.name}</h2>
               <p className="mt-2 text-lg" style={{ color: `rgba(${rgb},0.9)`, ...revealStyle(0) }}>{proj.tagline.ja}</p>
-              <p className="text-white/75 mt-4 leading-relaxed" style={revealStyle(1)}>{proj.description.ja}</p>
+              <p className="text-gray-600 mt-4 leading-relaxed" style={revealStyle(1)}>{proj.description.ja}</p>
               <div className="flex flex-wrap gap-2 mt-5" style={revealStyle(2)}>
                 {proj.stack.map((s) => (
-                  <span key={s} className="px-3 py-1 text-sm rounded-full bg-white/5 text-white/65 border border-white/[0.06]">{s}</span>
+                  <span key={s} className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-500 border border-gray-200">{s}</span>
                 ))}
               </div>
               <div className="flex gap-5 mt-6" style={revealStyle(3)}>
@@ -496,15 +479,15 @@ function ExpandedNodeContent({
                       {cat.skills.map((s) => (
                         <div key={s.name}>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-white/80">{s.name}</span>
+                            <span className="text-sm text-gray-700">{s.name}</span>
                             <div className="flex gap-0.5">
                               {Array.from({ length: 5 }, (_, i) => (
-                                <div key={i} className={`h-1.5 w-4 rounded-full ${i < s.level ? '' : 'bg-white/8'}`}
+                                <div key={i} className={`h-1.5 w-4 rounded-full ${i < s.level ? '' : 'bg-gray-200'}`}
                                   style={i < s.level ? { background: `rgba(${rgb},0.6)` } : undefined} />
                               ))}
                             </div>
                           </div>
-                          <p className="text-xs text-white/50 leading-relaxed">{s.details.ja}</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{s.details.ja}</p>
                         </div>
                       ))}
                     </div>
@@ -523,11 +506,11 @@ function ExpandedNodeContent({
                   <div key={i} style={revealStyle(i)}>
                     <h3 className="text-xl font-semibold">{entry.company.ja}</h3>
                     <p style={{ color: `rgba(${rgb},0.85)` }}>{entry.role.ja}</p>
-                    <p className="text-white/40 text-sm mt-0.5">{entry.period}</p>
-                    <p className="text-white/70 mt-2 leading-relaxed">{entry.description.ja}</p>
+                    <p className="text-gray-600 text-sm mt-0.5">{entry.period}</p>
+                    <p className="text-gray-600 mt-2 leading-relaxed">{entry.description.ja}</p>
                     <div className="mt-3 space-y-1.5">
                       {entry.highlights.ja.map((h, hi) => (
-                        <p key={hi} className="text-sm text-white/65 flex gap-2 items-start">
+                        <p key={hi} className="text-sm text-gray-500 flex gap-2 items-start">
                           <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
                             style={{ background: `rgba(${rgb},0.5)` }} />
                           {h}
@@ -544,13 +527,13 @@ function ExpandedNodeContent({
           {node?.type === 'values' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
               <h2 className="text-3xl md:text-4xl font-bold mb-6" style={breatheStyle(0)}>Vision &amp; Values</h2>
-              <p className="text-white/85 leading-relaxed text-lg" style={revealStyle(0)}>{values.visionForFutureSaaS.ja}</p>
+              <p className="text-gray-700 leading-relaxed text-lg" style={revealStyle(0)}>{values.visionForFutureSaaS.ja}</p>
               <div className="w-20 h-px my-6" style={{ background: `rgba(${rgb},0.2)` }} />
-              <p className="text-white/70 leading-relaxed" style={revealStyle(1)}>{values.beliefs.ja}</p>
+              <p className="text-gray-600 leading-relaxed" style={revealStyle(1)}>{values.beliefs.ja}</p>
               {values.workStyle && (
                 <>
                   <div className="w-20 h-px my-6" style={{ background: `rgba(${rgb},0.2)` }} />
-                  <p className="text-white/60 leading-relaxed text-sm" style={revealStyle(2)}>{values.workStyle.ja}</p>
+                  <p className="text-gray-700 leading-relaxed text-sm" style={revealStyle(2)}>{values.workStyle.ja}</p>
                 </>
               )}
             </motion.div>
@@ -575,8 +558,8 @@ export function StaticFallback() {
   const mouseY = useMotionValue(0);
 
   const tiltConfig = { stiffness: 14, damping: 28 };
-  const tiltX = useSpring(useTransform(mouseX, (v) => v * 2.5), tiltConfig);
-  const tiltY = useSpring(useTransform(mouseY, (v) => v * -1.8), tiltConfig);
+  const tiltX = useSpring(useTransform(mouseX, (v) => v * 0.3), tiltConfig);
+  const tiltY = useSpring(useTransform(mouseY, (v) => v * -0.2), tiltConfig);
 
   // Track touch state for mobile tap-to-expand
   const lastTapRef = useRef<{ id: string; time: number } | null>(null);
@@ -642,12 +625,12 @@ export function StaticFallback() {
     }
   }, [isMobile, hovered]);
 
-  if (!mounted) return <div className="h-full w-full bg-gray-950" />;
+  if (!mounted) return <div className="h-full w-full bg-white" />;
 
   return (
     <LayoutGroup>
       <div
-        className="h-full w-full overflow-hidden bg-gray-950 text-white"
+        className="h-full w-full overflow-hidden bg-white text-gray-900"
         style={{ perspective: '1200px', contain: 'layout paint' }}
         onClick={handleBackgroundTap}
         role="main"
@@ -685,22 +668,20 @@ export function StaticFallback() {
                 <motion.p
                   className="text-base sm:text-lg md:text-xl font-medium mt-3"
                   style={{ ...breatheStyle(1), color: `rgba(${hexToRgb(palette.secondary)},0.9)` }}
-                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   transition={{ duration: 1.4, delay: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
                 >
                   {profile.title.ja}
                 </motion.p>
                 <motion.p
-                  className="text-sm text-white/55 mt-1.5"
+                  className="text-sm text-gray-600 mt-1.5"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   transition={{ duration: 1, delay: 1.1 }}
                 >
                   {profile.location.ja}
                 </motion.p>
-                {/* Enriched: introduction excerpt */}
                 <motion.p
-                  className="text-xs text-white/40 mt-3 leading-relaxed max-w-xs mx-auto line-clamp-2"
-                  style={breatheStyle(2)}
+                  className="text-sm text-gray-700 mt-3 leading-relaxed max-w-xs mx-auto line-clamp-2"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   transition={{ duration: 1.2, delay: 1.6 }}
                 >
@@ -714,7 +695,7 @@ export function StaticFallback() {
                 >
                   {contact.github && (
                     <a href={contact.github} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-white/50 hover:text-white/80 transition-all duration-500 pointer-events-auto"
+                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 pointer-events-auto"
                       style={{ textShadow: 'none' }}>
                       GitHub
                     </a>
@@ -724,7 +705,7 @@ export function StaticFallback() {
                     transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }} />
                   {contact.linkedin && (
                     <a href={contact.linkedin} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-white/50 hover:text-white/80 transition-all duration-500 pointer-events-auto"
+                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 pointer-events-auto"
                       style={{ textShadow: 'none' }}>
                       LinkedIn
                     </a>
@@ -734,7 +715,7 @@ export function StaticFallback() {
                     transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }} />
                   {contact.email && (
                     <a href={`mailto:${contact.email}`}
-                      className="text-xs text-white/50 hover:text-white/80 transition-all duration-500 pointer-events-auto"
+                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 pointer-events-auto"
                       style={{ textShadow: 'none' }}>
                       Email
                     </a>
@@ -781,7 +762,7 @@ export function StaticFallback() {
                     <motion.div
                       className="absolute -inset-5 -z-10"
                       style={{
-                        background: `radial-gradient(ellipse at 30% 20%, rgba(${accentRgb},0.12) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.01) 100%)`,
+                        background: `radial-gradient(ellipse at 30% 20%, rgba(${accentRgb},0.12) 0%, rgba(249,250,251,0.6) 50%, rgba(255,255,255,0.4) 100%)`,
                         borderRadius: organicRadius,
                         boxShadow: `0 8px 40px rgba(0,0,0,0.3), 0 0 80px rgba(${accentRgb},0.06)`,
                         backdropFilter: isNodeHovered ? 'blur(12px)' : 'blur(0px)',
@@ -802,7 +783,7 @@ export function StaticFallback() {
                           {allSkills.map((s, i) => (
                             <span
                               key={s.name}
-                              className="text-sm text-white/80"
+                              className="text-sm text-gray-700"
                               style={{
                                 animation: `ai-breathe ${3.2 + i * 0.7}s ease-in-out infinite`,
                                 animationDelay: `${1.5 + i * 0.4}s`,
@@ -817,10 +798,10 @@ export function StaticFallback() {
                           {allSkills.slice(0, 3).map((s, i) => (
                             <div key={s.name} className="flex items-center justify-center gap-1.5"
                               style={{ animation: `ai-breathe ${4 + i * 0.5}s ease-in-out infinite`, animationDelay: `${2 + i * 0.3}s` }}>
-                              <span className="text-[10px] text-white/50 w-14 text-right">{s.name}</span>
+                              <span className="text-[10px] text-gray-500 w-14 text-right">{s.name}</span>
                               <div className="flex gap-px">
                                 {Array.from({ length: 5 }, (_, j) => (
-                                  <div key={j} className={`h-1 w-2.5 rounded-full ${j < s.level ? '' : 'bg-white/8'}`}
+                                  <div key={j} className={`h-1 w-2.5 rounded-full ${j < s.level ? '' : 'bg-gray-200'}`}
                                     style={j < s.level ? { background: `rgba(${accentRgb},0.5)` } : undefined} />
                                 ))}
                               </div>
@@ -833,24 +814,24 @@ export function StaticFallback() {
                       <div>
                         {career.history.slice(0, 2).map((entry, i) => (
                           <div key={i} className={i > 0 ? 'mt-2' : ''}>
-                            <p className={`font-semibold ${i === 0 ? 'text-base' : 'text-sm text-white/60'}`}>{entry.company.ja}</p>
-                            <p className="text-sm text-white/70 mt-0.5">{entry.role.ja}</p>
-                            <p className="text-xs text-white/40">{entry.period}</p>
+                            <p className={`font-semibold ${i === 0 ? 'text-base' : 'text-sm text-gray-500'}`}>{entry.company.ja}</p>
+                            <p className="text-sm text-gray-600 mt-0.5">{entry.role.ja}</p>
+                            <p className="text-sm text-gray-600">{entry.period}</p>
                           </div>
                         ))}
                       </div>
                     )}
                     {node.type === 'values' && (
-                      <p className="text-sm text-white/70 leading-relaxed line-clamp-3">{values.visionForFutureSaaS.ja}</p>
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{values.visionForFutureSaaS.ja}</p>
                     )}
                     {node.type === 'project' && proj && (
                       <>
                         <p className="text-base font-semibold">{proj.name}</p>
-                        <p className="text-sm text-white/70 mt-0.5">{proj.tagline.ja}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">{proj.tagline.ja}</p>
                         {/* Always visible: stack badges */}
                         <div className="flex flex-wrap justify-center gap-1 mt-1.5">
                           {proj.stack.slice(0, 4).map((s) => (
-                            <span key={s} className="px-1.5 py-0.5 text-[9px] rounded-full bg-white/5 text-white/50">{s}</span>
+                            <span key={s} className="px-1.5 py-0.5 text-[9px] rounded-full bg-gray-100 text-gray-500">{s}</span>
                           ))}
                         </div>
                       </>
@@ -867,7 +848,7 @@ export function StaticFallback() {
                           className="overflow-hidden"
                           style={{ maxHeight: 160 }}
                         >
-                          <div className="pt-3 border-t border-white/[0.06] mt-3 text-left">
+                          <div className="pt-3 border-t border-gray-200 mt-3 text-left">
                             {node.type === 'skills' && (
                               <div className="space-y-1.5">
                                 {skills.categories.map((cat, ci) => (
@@ -875,8 +856,8 @@ export function StaticFallback() {
                                     style={{ animation: 'ai-reveal 0.5s ease-out both', animationDelay: `${ci * 0.12}s` }}>
                                     <span className="w-1.5 h-1.5 rounded-full shrink-0"
                                       style={{ background: `rgba(${accentRgb},0.5)` }} />
-                                    <span className="text-xs text-white/80">{cat.name.ja}</span>
-                                    <span className="text-[10px] text-white/40 ml-auto">{cat.skills.length} skills</span>
+                                    <span className="text-xs text-gray-700">{cat.name.ja}</span>
+                                    <span className="text-[10px] text-gray-400 ml-auto">{cat.skills.length} skills</span>
                                   </div>
                                 ))}
                               </div>
@@ -884,7 +865,7 @@ export function StaticFallback() {
                             {node.type === 'career' && (
                               <div className="space-y-1.5">
                                 {career.history[0]?.highlights.ja.slice(0, 2).map((h, i) => (
-                                  <p key={i} className="text-xs text-white/75 flex gap-1.5 items-start"
+                                  <p key={i} className="text-xs text-gray-600 flex gap-1.5 items-start"
                                     style={{ animation: 'ai-reveal 0.4s ease-out both', animationDelay: `${i * 0.1}s` }}>
                                     <span className="w-1 h-1 rounded-full mt-1.5 shrink-0"
                                       style={{ background: `rgba(${accentRgb},0.5)` }} />
@@ -894,7 +875,7 @@ export function StaticFallback() {
                               </div>
                             )}
                             {node.type === 'values' && (
-                              <p className="text-xs text-white/75 leading-relaxed"
+                              <p className="text-xs text-gray-600 leading-relaxed"
                                 style={{ animation: 'ai-reveal 0.5s ease-out both' }}>{values.beliefs.ja}</p>
                             )}
                             {node.type === 'project' && proj && (
@@ -906,7 +887,7 @@ export function StaticFallback() {
                                       onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                                   </div>
                                 )}
-                                <p className="text-xs text-white/75 leading-relaxed line-clamp-3"
+                                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3"
                                   style={{ animation: 'ai-reveal 0.4s ease-out both', animationDelay: '0.1s' }}>{proj.description.ja}</p>
                               </>
                             )}
@@ -915,15 +896,7 @@ export function StaticFallback() {
                       )}
                     </AnimatePresence>
 
-                    {/* Click hint */}
-                    <motion.p
-                      className="text-[10px] text-white/25 mt-2 text-center h-4"
-                      animate={{ opacity: isNodeHovered ? 1 : 0 }}
-                      transition={{ duration: 0.3, delay: isNodeHovered ? 0.4 : 0 }}
-                      aria-hidden="true"
-                    >
-                      {isMobile ? 'tap again to explore' : 'click to explore'}
-                    </motion.p>
+                    <div className="h-4" />
                   </motion.div>
                 </FloatingNode>
               );

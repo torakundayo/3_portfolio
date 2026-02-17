@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps) {
   const profile = data as any;
@@ -13,6 +13,7 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
   const rotationBase = mirror ? -2 : 2;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const cards = [
     // Card 1: Name & Title
@@ -25,31 +26,31 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
         <>
           <div className="mb-3">
             <span
-              className="text-[10px] uppercase tracking-[0.25em] font-medium"
+              className="text-xs uppercase tracking-[0.25em] font-medium"
               style={{ color: palette.primary }}
             >
               Profile
             </span>
           </div>
           <h2
-            className="text-3xl md:text-4xl font-bold text-white leading-tight"
+            className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight"
             style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
           >
             {profile?.name?.ja || profile?.name?.en || 'Name'}
           </h2>
           {profile?.name?.en && profile?.name?.ja && (
-            <p className="text-sm text-white/30 mt-2 tracking-wide" style={{ transform: 'translateZ(25px)' }}>
+            <p className="text-sm text-gray-800 mt-2 tracking-normal" style={{ transform: 'translateZ(25px)' }}>
               {profile.name.en}
             </p>
           )}
           <p
-            className="text-base font-light mt-3"
+            className="text-base font-medium mt-3"
             style={{ color: palette.glow, transform: 'translateZ(25px)', ...breatheStyle(1) }}
           >
             {profile?.title?.ja || profile?.title?.en || ''}
           </p>
           {(profile?.location?.ja || profile?.location?.en) && (
-            <p className="text-xs text-white/30 mt-2" style={{ transform: 'translateZ(15px)' }}>
+            <p className="text-xs text-gray-800 mt-2" style={{ transform: 'translateZ(15px)' }}>
               {profile.location.ja || profile.location.en}
             </p>
           )}
@@ -68,14 +69,14 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
               <>
                 <div className="mb-3">
                   <span
-                    className="text-[10px] uppercase tracking-[0.25em] font-medium"
+                    className="text-xs uppercase tracking-[0.25em] font-medium"
                     style={{ color: palette.secondary }}
                   >
                     Introduction
                   </span>
                 </div>
                 <p
-                  className="text-sm text-white/70 leading-relaxed font-light line-clamp-4"
+                  className="text-sm text-gray-800 leading-relaxed font-normal line-clamp-4"
                   style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
                 >
                   {profile.introduction.ja || profile.introduction.en}
@@ -99,14 +100,14 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                   <>
                     <div className="mb-3">
                       <span
-                        className="text-[10px] uppercase tracking-[0.25em] font-medium"
+                        className="text-xs uppercase tracking-[0.25em] font-medium"
                         style={{ color: palette.glow }}
                       >
                         Background
                       </span>
                     </div>
                     <p
-                      className="text-xs text-white/60 leading-relaxed font-light line-clamp-3"
+                      className="text-sm text-gray-800 leading-relaxed font-normal line-clamp-3"
                       style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
                     >
                       {profile.background.ja || profile.background.en}
@@ -114,17 +115,17 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                   </>
                 )}
                 {profile?.links && (
-                  <div className={`flex gap-3 ${profile?.background?.ja || profile?.background?.en ? 'mt-4 pt-3 border-t border-white/[0.06]' : ''}`}>
+                  <div className={`flex gap-3 ${profile?.background?.ja || profile?.background?.en ? 'mt-4 pt-3 border-t border-gray-200' : ''}`}>
                     {profile.links.github && (
                       <a
                         href={profile.links.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+                        className="flex items-center gap-2 text-gray-800 hover:text-gray-900 transition-colors group"
                       >
                         <span
-                          className="w-7 h-7 flex items-center justify-center border border-white/10
-                                     group-hover:border-white/30 transition-all"
+                          className="w-7 h-7 flex items-center justify-center border border-gray-200
+                                     group-hover:border-gray-400 transition-all"
                           style={{ borderRadius: organicRadius }}
                         >
                           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -139,11 +140,11 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                         href={profile.links.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+                        className="flex items-center gap-2 text-gray-800 hover:text-gray-900 transition-colors group"
                       >
                         <span
-                          className="w-7 h-7 flex items-center justify-center border border-white/10
-                                     group-hover:border-white/30 transition-all"
+                          className="w-7 h-7 flex items-center justify-center border border-gray-200
+                                     group-hover:border-gray-400 transition-all"
                           style={{ borderRadius: organicRadius }}
                         >
                           <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -163,7 +164,7 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
   ];
 
   return (
-    <div className="h-full w-full overflow-hidden relative bg-gray-950">
+    <div className="h-full w-full overflow-hidden relative bg-white">
       {/* CSS keyframe background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -183,31 +184,32 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
               className="relative mb-4"
               initial={{
                 opacity: 0,
-                y: 60,
                 rotate: card.rotation * 2,
+                rotateX: 3,
                 scale: 0.9,
               }}
               animate={{
                 opacity: 1,
-                y: 0,
                 rotate: 0,
+                rotateX: 0,
                 scale: 1,
               }}
               transition={{
                 ...SPRING_ENTER,
-                delay: baseDelay + index * 0.15,
-                opacity: { duration: 0.8, delay: baseDelay + index * 0.15, ease: [0.22, 1, 0.36, 1] as const },
+                delay: baseDelay + stagger * index,
+                opacity: { duration: 0.8, delay: baseDelay + stagger * index, ease: [0.22, 1, 0.36, 1] as const },
+                rotateX: { ...SPRING_ENTER, delay: baseDelay + stagger * index },
               }}
               whileHover={{
-                y: -4,
+                scale: 1.02,
                 transition: { duration: 0.3 },
               }}
             >
               <div
-                className="relative p-5 md:p-6 border border-white/[0.06]
-                           backdrop-blur-sm overflow-hidden"
+                className="relative p-5 md:p-6 border border-gray-200
+                           backdrop-blur-sm shadow-sm overflow-hidden"
                 style={{
-                  background: `linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))`,
+                  background: `linear-gradient(135deg, rgba(255,255,255,0.8), rgba(249,250,251,0.9))`,
                   borderRadius: organicRadius,
                 }}
               >
@@ -226,17 +228,18 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
           {/* AI Commentary card */}
           {commentary && (
             <motion.div
-              initial={{ opacity: 0, y: 60, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{
                 ...SPRING_ENTER,
-                delay: baseDelay + cards.length * 0.15,
-                opacity: { duration: 0.8, delay: baseDelay + cards.length * 0.15, ease: [0.22, 1, 0.36, 1] as const },
+                delay: baseDelay + stagger * cards.length,
+                opacity: { duration: 0.8, delay: baseDelay + stagger * cards.length, ease: [0.22, 1, 0.36, 1] as const },
               }}
+              style={{ transform: 'translateZ(5px)' }}
             >
               <div
-                className="relative p-5 md:p-6 border border-white/[0.06]
-                           backdrop-blur-sm overflow-hidden"
+                className="relative p-5 md:p-6 border border-gray-200
+                           backdrop-blur-sm shadow-sm overflow-hidden"
                 style={{
                   background: `linear-gradient(135deg, ${palette.primary}08, ${palette.secondary}04)`,
                   borderRadius: organicRadius,
@@ -250,14 +253,14 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                 />
                 <div className="mb-3">
                   <span
-                    className="text-[10px] uppercase tracking-[0.25em] font-medium"
+                    className="text-xs uppercase tracking-[0.25em] font-medium"
                     style={{ color: palette.secondary }}
                   >
                     AI Commentary
                   </span>
                 </div>
                 <div
-                  className="prose prose-sm prose-invert prose-p:text-white/50 prose-p:font-light max-w-none line-clamp-4"
+                  className="prose prose-sm prose-p:text-gray-800 max-w-none line-clamp-4"
                   style={{ ...revealStyle(2), transform: 'translateZ(15px)' }}
                 >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

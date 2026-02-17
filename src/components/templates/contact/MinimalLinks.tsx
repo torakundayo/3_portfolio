@@ -6,12 +6,13 @@ import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin, ExternalLink } from 'lucide-react';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
   const d = data as any;
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   const email = d?.email ?? '';
   const github = d?.github ?? '';
@@ -52,7 +53,7 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
         {/* Message — ai-breathe on main text */}
         {message && (
           <motion.p
-            className="text-sm text-gray-400 text-center mb-12 tracking-wide"
+            className="text-sm text-gray-800 text-center mb-12 tracking-normal"
             style={{
               ...breatheStyle(0),
               transform: 'translateZ(40px)',
@@ -75,16 +76,16 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center gap-3 text-gray-500 hover:text-gray-900 transition-colors duration-300"
+                className="group flex items-center gap-3 text-gray-800 hover:text-gray-900 transition-colors duration-300"
                 style={{
                   ...revealStyle(i),
                   transform: 'translateZ(30px)',
                 }}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{
                   ...SPRING_ENTER,
-                  delay: baseDelay + 0.12 * i,
+                  delay: baseDelay + stagger * i,
                 }}
               >
                 <Icon className="w-4 h-4" />
@@ -95,7 +96,7 @@ export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplatePr
                   className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   initial={false}
                 >
-                  <ExternalLink className="w-3 h-3 text-gray-300" />
+                  <ExternalLink className="w-3 h-3 text-gray-800" />
                 </motion.span>
               </motion.a>
             );

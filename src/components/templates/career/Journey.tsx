@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface CareerEntry {
   company: { ja: string; en: string };
@@ -21,13 +21,14 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
   const history: CareerEntry[] = d?.history ?? [];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   // Limit chapters to 2 for single-viewport fit
   const displayed = history.slice(0, 2);
   const hiddenCount = history.length - displayed.length;
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950">
+    <div className="h-full w-full overflow-hidden bg-white">
       {/* CSS keyframe background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -38,8 +39,8 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                    animation: 'bg-drift-2 22s ease-in-out infinite', transform: 'translateZ(-20px)' }} />
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-10 h-full flex flex-col">
-        <div className="space-y-6 flex-1">
+      <div className="max-w-4xl mx-auto px-6 py-10 h-full flex flex-col justify-center">
+        <div className="space-y-6">
           {displayed.map((entry, i) => {
             const isOdd = i % 2 !== 0;
             const align = mirror ? (isOdd ? 'left' : 'right') : (isOdd ? 'right' : 'left');
@@ -49,11 +50,11 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                 key={i}
                 className={`${align === 'right' ? 'text-right' : 'text-left'}`}
                 style={revealStyle(i)}
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{
                   ...SPRING_ENTER,
-                  delay: baseDelay + 0.1 * i,
+                  delay: baseDelay + stagger * i,
                 }}
               >
                 {/* Chapter number */}
@@ -63,8 +64,8 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                   initial={{ opacity: 0, scale: 0.7 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
-                    opacity: { duration: 0.6, delay: baseDelay + 0.1 * i + 0.1 },
-                    scale: { ...SPRING_ENTER, delay: baseDelay + 0.1 * i + 0.1 },
+                    opacity: { duration: 0.6, delay: baseDelay + stagger * i + 0.1 },
+                    scale: { ...SPRING_ENTER, delay: baseDelay + stagger * i + 0.1 },
                   }}
                 >
                   {String(i + 1).padStart(2, '0')}
@@ -75,7 +76,7 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                   className="mb-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ opacity: { duration: 0.4, delay: baseDelay + 0.1 * i + 0.2 } }}
+                  transition={{ opacity: { duration: 0.4, delay: baseDelay + stagger * i + 0.2 } }}
                 >
                   <span
                     className="text-xs font-mono tracking-widest uppercase"
@@ -87,7 +88,7 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
 
                 {/* Role as large title */}
                 <h2
-                  className="text-2xl md:text-3xl font-extrabold text-white mb-1 leading-tight"
+                  className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1 leading-tight"
                   style={{ ...breatheStyle(1), transform: 'translateZ(25px)' }}
                 >
                   {entry.role?.ja ?? entry.role?.en ?? ''}
@@ -95,12 +96,12 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
 
                 {/* Company */}
                 <p
-                  className="text-base text-gray-400 mb-4"
+                  className="text-base text-gray-800 mb-4"
                   style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                 >
                   {entry.company?.ja ?? entry.company?.en ?? ''}
                   {entry.company?.en && entry.company?.ja && (
-                    <span className="text-gray-600 ml-2">/ {entry.company.en}</span>
+                    <span className="text-gray-800 ml-2">/ {entry.company.en}</span>
                   )}
                 </p>
 
@@ -118,12 +119,12 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                   }}
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ ...SPRING_ENTER, delay: baseDelay + 0.1 * i + 0.3 }}
+                  transition={{ ...SPRING_ENTER, delay: baseDelay + stagger * i + 0.3 }}
                 />
 
                 {/* Description — line-clamp-3 */}
                 {(entry.description?.ja || entry.description?.en) && (
-                  <p className="text-sm text-gray-400 leading-relaxed mb-3 max-w-2xl line-clamp-3"
+                  <p className="text-sm text-gray-800 leading-relaxed mb-3 max-w-2xl line-clamp-3"
                     style={{ marginLeft: align === 'right' ? 'auto' : '0' }}
                   >
                     {entry.description?.ja ?? entry.description?.en}
@@ -139,16 +140,15 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
                     {(entry.highlights?.ja ?? entry.highlights?.en ?? []).slice(0, 3).map((h: string, j: number) => (
                       <motion.p
                         key={j}
-                        className="text-xs text-gray-500 leading-relaxed pl-3 border-l-2"
+                        className="text-sm text-gray-800 leading-relaxed pl-3 border-l-2"
                         style={{
                           borderColor: `${palette.primary}30`,
                           ...revealStyle(i * 4 + j),
                         }}
-                        initial={{ opacity: 0, x: align === 'right' ? 10 : -10 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         transition={{
-                          opacity: { duration: 0.4, delay: baseDelay + 0.1 * i + 0.4 + 0.08 * j },
-                          x: { ...SPRING_ENTER, delay: baseDelay + 0.1 * i + 0.4 + 0.08 * j },
+                          opacity: { duration: 0.4, delay: baseDelay + stagger * i + 0.4 + stagger * j },
                         }}
                       >
                         {h}
@@ -164,10 +164,10 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
         {/* "+N more" indicator */}
         {hiddenCount > 0 && (
           <motion.p
-            className="text-center text-sm text-gray-500 mt-4"
+            className="text-center text-sm text-gray-800 mt-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ opacity: { duration: 0.6, delay: baseDelay + 0.1 * displayed.length + 0.3 } }}
+            transition={{ opacity: { duration: 0.6, delay: baseDelay + stagger * displayed.length + 0.3 } }}
           >
             +{hiddenCount} more
           </motion.p>
@@ -176,12 +176,11 @@ export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="mt-6 pt-4 border-t border-white/10 prose prose-invert prose-gray prose-sm max-w-none"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 pt-4 border-t border-gray-200 prose prose-gray prose-sm max-w-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
-              opacity: { duration: 0.6, delay: baseDelay + 0.1 * displayed.length + 0.5 },
-              y: { ...SPRING_ENTER, delay: baseDelay + 0.1 * displayed.length + 0.5 },
+              opacity: { duration: 0.6, delay: baseDelay + stagger * displayed.length + 0.5 },
             }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>

@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TemplateProps } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
-import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius } from '@/lib/animation';
+import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 interface CareerEntry {
   company: { ja: string; en: string };
@@ -20,9 +20,10 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
   const d = data as any;
   const history: CareerEntry[] = d?.history ?? [];
   const baseDelay = visualSeed.animationDelay;
+  const { stagger } = seededStagger(visualSeed.colorOffset);
 
   return (
-    <div className="h-full w-full overflow-hidden bg-gray-950 flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-white flex flex-col">
       {/* CSS keyframe background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
@@ -58,11 +59,11 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                     key={i}
                     className="relative flex flex-col items-center"
                     style={{ width: '260px', minWidth: '260px', ...revealStyle(i) }}
-                    initial={{ opacity: 0, y: isAbove ? -30 : 30 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{
                       ...SPRING_ENTER,
-                      delay: baseDelay + 0.1 * i,
+                      delay: baseDelay + stagger * i,
                     }}
                   >
                     {/* Card above or below — glassmorphism + organic */}
@@ -70,7 +71,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                       className={`flex flex-col ${isAbove ? 'order-1 mb-4' : 'order-3 mt-4'}`}
                     >
                       <div
-                        className="backdrop-blur-xl bg-white/[0.06] border border-white/10 p-4 shadow-sm hover:shadow-lg transition-all duration-300 w-56"
+                        className="backdrop-blur-xl bg-white/[0.06] border border-gray-200 p-4 shadow-sm hover:shadow-lg transition-all duration-300 w-56"
                         style={{
                           borderRadius: organicRadius,
                           borderTopColor: isAbove ? `${palette.primary}60` : undefined,
@@ -81,7 +82,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                         }}
                       >
                         <h3
-                          className="text-base font-bold text-white mb-1 leading-tight"
+                          className="text-base font-bold text-gray-900 mb-1 leading-tight"
                           style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
                         >
                           {entry.company?.ja ?? entry.company?.en ?? ''}
@@ -93,7 +94,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                           {entry.role?.ja ?? entry.role?.en ?? ''}
                         </p>
                         {(entry.description?.ja || entry.description?.en) && (
-                          <p className="text-[11px] text-gray-400 leading-relaxed mb-1.5 line-clamp-2">
+                          <p className="text-sm text-gray-800 leading-relaxed mb-1.5 line-clamp-2">
                             {entry.description?.ja ?? entry.description?.en}
                           </p>
                         )}
@@ -102,7 +103,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                             {(entry.highlights?.ja ?? entry.highlights?.en ?? []).slice(0, 2).map((h: string, j: number) => (
                               <li
                                 key={j}
-                                className="flex items-start gap-1.5 text-[11px] text-gray-400"
+                                className="flex items-start gap-1.5 text-sm text-gray-800"
                                 style={revealStyle(i * 3 + j)}
                               >
                                 <span
@@ -120,7 +121,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                     {/* Center dot + period marker */}
                     <div className="order-2 flex flex-col items-center z-10">
                       <motion.div
-                        className="w-3.5 h-3.5 rounded-full border-[3px] border-gray-950 shadow-md"
+                        className="w-3.5 h-3.5 rounded-full border-[3px] border-white shadow-md"
                         style={{
                           backgroundColor: palette.primary,
                           boxShadow: `0 0 16px ${palette.glow}50`,
@@ -128,7 +129,7 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
                         }}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ ...SPRING_ENTER, delay: baseDelay + 0.1 * i + 0.15 }}
+                        transition={{ ...SPRING_ENTER, delay: baseDelay + stagger * i + stagger }}
                       />
                       <span
                         className="mt-1 text-[10px] font-medium tracking-wide whitespace-nowrap"
@@ -150,12 +151,11 @@ export function CareerHorizontalTimeline({ data, commentary, visualSeed }: Templ
         {/* Commentary */}
         {commentary && (
           <motion.div
-            className="max-w-2xl mx-auto mt-6 prose prose-invert prose-sm max-w-none"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="max-w-2xl mx-auto mt-6 prose prose-sm max-w-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
-              opacity: { duration: 0.6, delay: baseDelay + 0.1 * history.length + 0.3 },
-              y: { ...SPRING_ENTER, delay: baseDelay + 0.1 * history.length + 0.3 },
+              opacity: { duration: 0.6, delay: baseDelay + stagger * history.length + 0.3 },
             }}
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
