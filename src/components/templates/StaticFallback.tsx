@@ -146,16 +146,20 @@ function FloatingNode({
     scale: { type: 'spring' as const, stiffness: 60, damping: 18 },
   };
 
+  // Any interaction (hover/dim/hide) immediately switches to live transitions
+  // to prevent re-triggering entry animation delays on hover
+  const interacted = isDimmed || isHovered || isHidden;
+
   return (
     <motion.div
       className={`absolute ${interactive ? 'pointer-events-auto cursor-pointer' : ''}`}
       style={{ left: '50%', top: '50%', x: `calc(${xVw}vw - 50%)`, y: `calc(${yVh}vh - 50%)` }}
       initial={{ opacity: 0, scale: 0.1 }}
       animate={{
-        opacity: isHidden ? 0 : isDimmed ? 0.12 : 1,
+        opacity: isHidden ? 0 : isDimmed ? 0.35 : 1,
         scale: isHidden ? 0.3 : isHovered ? scale * 1.12 : scale,
       }}
-      transition={entered ? liveTransition : entryTransition}
+      transition={(entered || interacted) ? liveTransition : entryTransition}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onClick={handleClick}
@@ -780,7 +784,7 @@ export function StaticFallback() {
                         background: `radial-gradient(ellipse at 30% 20%, rgba(${accentRgb},0.12) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.01) 100%)`,
                         borderRadius: organicRadius,
                         boxShadow: `0 8px 40px rgba(0,0,0,0.3), 0 0 80px rgba(${accentRgb},0.06)`,
-                        backdropFilter: isNodeHovered ? 'blur(20px)' : 'blur(0px)',
+                        backdropFilter: isNodeHovered ? 'blur(12px)' : 'blur(0px)',
                       }}
                       animate={{ opacity: isNodeHovered ? 1 : 0, scale: isNodeHovered ? 1 : 0.85 }}
                       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
@@ -861,32 +865,25 @@ export function StaticFallback() {
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
                           className="overflow-hidden"
+                          style={{ maxHeight: 160 }}
                         >
                           <div className="pt-3 border-t border-white/[0.06] mt-3 text-left">
                             {node.type === 'skills' && (
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 {skills.categories.map((cat, ci) => (
-                                  <div key={cat.name.en} style={{ animation: 'ai-reveal 0.5s ease-out both', animationDelay: `${ci * 0.12}s` }}>
-                                    <span className="text-white/90 text-xs font-medium">{cat.name.ja}</span>
-                                    {cat.skills.map((s, si) => (
-                                      <div key={s.name} className="flex items-center gap-2 ml-2 mt-1"
-                                        style={{ animation: 'ai-reveal 0.4s ease-out both', animationDelay: `${ci * 0.12 + (si + 1) * 0.06}s` }}>
-                                        <span className="text-xs text-white/75 w-20">{s.name}</span>
-                                        <div className="flex gap-0.5">
-                                          {Array.from({ length: 5 }, (_, i) => (
-                                            <div key={i} className={`h-1 w-3.5 rounded-full ${i < s.level ? '' : 'bg-white/8'}`}
-                                              style={i < s.level ? { background: `rgba(${accentRgb},0.6)` } : undefined} />
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ))}
+                                  <div key={cat.name.en} className="flex items-center gap-2"
+                                    style={{ animation: 'ai-reveal 0.5s ease-out both', animationDelay: `${ci * 0.12}s` }}>
+                                    <span className="w-1.5 h-1.5 rounded-full shrink-0"
+                                      style={{ background: `rgba(${accentRgb},0.5)` }} />
+                                    <span className="text-xs text-white/80">{cat.name.ja}</span>
+                                    <span className="text-[10px] text-white/40 ml-auto">{cat.skills.length} skills</span>
                                   </div>
                                 ))}
                               </div>
                             )}
                             {node.type === 'career' && (
                               <div className="space-y-1.5">
-                                {career.history[0]?.highlights.ja.map((h, i) => (
+                                {career.history[0]?.highlights.ja.slice(0, 2).map((h, i) => (
                                   <p key={i} className="text-xs text-white/75 flex gap-1.5 items-start"
                                     style={{ animation: 'ai-reveal 0.4s ease-out both', animationDelay: `${i * 0.1}s` }}>
                                     <span className="w-1 h-1 rounded-full mt-1.5 shrink-0"

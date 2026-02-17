@@ -7,30 +7,66 @@
         "en": "Golf Competition Ranking Real-time Simulator"
       },
       "description": {
-        "ja": "新ペリア方式のゴルフコンペで、係数スライダーを動かすと順位がリアルタイムに変動する。スマホ完結のPWA。オフライン動作可能。",
-        "en": "Real-time ranking simulator for Peoria-method golf competitions. Slide coefficients to see rankings change instantly. Mobile-first PWA with offline support."
+        "ja": "新ペリア（ダブルペリア）方式のゴルフコンペで、係数スライダーを動かすと順位がリアルタイムに変動するWebアプリ。幹事経験から「係数を変えたときの順位変動をその場で見せたい」という課題を解決するために開発。隠しホール選択・ダブルパーカット・HDCP上限など細かいルール設定に対応し、表彰式で「もし係数が0.85だったら…」とスライダーを動かすだけで順位が入れ替わる様子をリアルタイムに演出できる。完全クライアントサイドで動作し、バックエンド不要・ランニングコスト0円。PWA対応でスマホにインストール可能、ゴルフ場の電波が弱い環境でもオフライン動作を保証。",
+        "en": "A web app for Peoria-method (Double Peoria) golf competitions where rankings update in real time as you slide coefficient values. Built from personal experience organizing golf competitions—I wanted a tool to instantly show 'what if the coefficient were 0.85?' during award ceremonies. Supports hidden hole selection, double-par cut, and handicap cap settings. Fully client-side with zero backend costs, PWA-enabled for offline use at golf courses with poor connectivity."
       },
-      "stack": ["React 19", "TypeScript", "Vite 7", "PWA"],
+      "stack": ["React 19", "TypeScript", "Vite 7", "PWA", "Cloudflare Pages"],
       "url": "https://peoria-slider.pages.dev/",
       "github": "https://github.com/torakundayo/1_PeoriaSlider",
-      "image": "/images/projects/peoria-slider.png",
-      "year": 2026
+      "image": "",
+      "year": 2026,
+      "motivation": {
+        "ja": "ゴルフコンペの幹事をやった際、新ペリア方式の係数を変えたときに順位がどう変動するかを手軽にシミュレーションできるツールがなかった。Excelで計算するのは面倒で、表彰式でリアルタイムに見せる演出もできない。この課題を解決するために開発。",
+        "en": "When I organized a golf competition, there was no easy way to simulate how rankings change when adjusting Peoria coefficients. Excel was cumbersome and couldn't support a live demonstration during the award ceremony."
+      },
+      "highlights": {
+        "ja": [
+          "useMemo/useCallbackによる計算結果メモ化とlocalStorage保存の300msデバウンスでスライダー操作時のパフォーマンスを確保",
+          "Workbox Service Workerでゴルフ場の電波が弱い環境でもオフライン動作を保証",
+          "完全クライアントサイド＋Cloudflare Pages静的ホスティングでランニングコスト0円を実現",
+          "TWA（Trusted Web Activity）対応準備済みで将来的なGoogle Playストア公開にも対応可能"
+        ],
+        "en": [
+          "Memoized calculations with useMemo/useCallback and 300ms debounced localStorage persistence for smooth slider performance",
+          "Workbox Service Worker ensures offline operation at golf courses with weak connectivity",
+          "Fully client-side + Cloudflare Pages static hosting achieves zero running costs",
+          "TWA-ready for potential future Google Play Store distribution"
+        ]
+      }
     },
     {
-      "name": "keiba",
+      "name": "3連複 確率構造分析",
       "tagline": {
-        "ja": "3連複の確率構造分析ツール",
-        "en": "Trifecta Probability Structure Analysis Tool"
+        "ja": "競馬3連複の期待リターンを確率構造から可視化",
+        "en": "Visualizing Expected Returns of Trifecta Bets Through Probability Structure"
       },
       "description": {
-        "ja": "単勝×複勝の2データソースで確率を推定。構造的に75%を超えられない理由を教育的に解説。774レースのバックテスト搭載。",
-        "en": "Probability estimation using win/place data. Educational explanation of why 75% return rate is structurally impossible to beat. 774-race backtest included."
+        "ja": "単勝オッズと複勝オッズという2つの異なる市場データから3連複の的中確率と期待回収率を推定するツール。確率モデルのランキングは有効で、的中組合せの中央順位は上位3.6%（約445通り中16位、ランダム比26〜38倍の精度）。しかし774レースのバックテストで検証した結果、最も回収率の高い戦略でも47%にとどまり、JRAの控除率25%を構造的に超えられないことを教育的に解説。買い目分析・計算方法の数学的解説・考察・バックテスト検証の4ページ構成。",
+        "en": "A tool that estimates trifecta hit probabilities and expected returns from two distinct market data sources: win odds and place odds. The probability model effectively ranks combinations—winning combinations have a median rank in the top 3.6% (16th out of ~445, 26-38x more accurate than random). However, backtesting across 774 races shows even the best strategy yields only 47% return, educationally demonstrating why JRA's 25% takeout is structurally insurmountable. Features race analysis, mathematical methodology, insights, and backtest verification."
       },
-      "stack": ["Next.js 14", "TypeScript", "TanStack Query", "Tailwind CSS", "KaTeX", "Cheerio"],
+      "stack": ["Next.js 14", "TypeScript", "TanStack Query", "Tailwind CSS", "shadcn/ui", "KaTeX", "Cheerio"],
       "url": "https://keiba-six.vercel.app/",
       "github": "https://github.com/torakundayo/2_keiba",
-      "image": "/images/projects/keiba.png",
-      "year": 2026
+      "image": "",
+      "year": 2026,
+      "motivation": {
+        "ja": "競馬の3連複は控除率25%のため、どのような購入戦略でも長期的に利益を出すことは構造的に困難。「どの組み合わせが相対的に有利か」を可視化し、確率構造を正しく理解するための教育的ツールとして開発。",
+        "en": "With a 25% takeout rate, no trifecta betting strategy can be structurally profitable long-term. Built as an educational tool to visualize which combinations are relatively advantageous and to properly understand probability structures."
+      },
+      "highlights": {
+        "ja": [
+          "単勝オッズ（価格モデル）と複勝オッズ（確率モデル）の2ソースで期待回収率を推定: 期待回収率 = 0.75 × 確率モデル ÷ 価格モデル",
+          "Cheerioによるサーバーサイドスクレイピングでリアルタイムオッズを取得",
+          "KaTeX（react-katex）で確率計算の数学的根拠を数式レンダリング",
+          "774レース（2025年11月〜2026年2月）のバックテストで理論の妥当性を統計的に検証"
+        ],
+        "en": [
+          "Estimates expected returns from two sources: win odds (price model) and place odds (probability model) using formula: ER = 0.75 × probability / price",
+          "Server-side scraping with Cheerio for real-time odds data",
+          "Mathematical proofs rendered with KaTeX (react-katex) for educational rigor",
+          "Statistically validated through backtesting across 774 races (Nov 2025 – Feb 2026)"
+        ]
+      }
     },
     {
       "name": "Portfolio (This Site)",
@@ -39,14 +75,32 @@
         "en": "AI Canvas Portfolio"
       },
       "description": {
-        "ja": "AIチャットボットファーストのポートフォリオサイト。トップページ1枚＋AI対話のみで構成。ページ遷移なし。入力に応じてデザインが動的に変化する次世代UI/UXの概念実証。",
-        "en": "AI chatbot-first portfolio. Single page + AI dialogue only. No page navigation. Design dynamically transforms based on input. Proof of concept for next-gen UI/UX."
+        "ja": "AIチャットボットファーストのポートフォリオサイト。従来のページ遷移型ポートフォリオではなく、トップページ1枚＋AI対話のみで構成。ユーザーの入力に応じてAI（Gemini 2.5 Flash）が31種類のデザインテンプレートから最適なものを選択し、画面全体のデザインが動的に変化する。8カテゴリ（プロフィール・スキル・実績・経歴・価値観・連絡先・テキスト・ウェルカム）のテンプレートをAIが文脈に応じて使い分ける次世代UI/UXの概念実証。",
+        "en": "An AI chatbot-first portfolio site. Instead of traditional page navigation, it consists of a single page + AI dialogue only. Based on user input, Gemini 2.5 Flash selects from 31 design templates and dynamically transforms the entire screen. A proof of concept for next-gen UI/UX where AI contextually switches between 8 template categories: profile, skills, projects, career, values, contact, text, and welcome."
       },
-      "stack": ["Next.js 15", "Vercel AI SDK", "Gemini 2.5 Flash", "Framer Motion", "Tailwind CSS"],
+      "stack": ["Next.js 16", "React 19", "Vercel AI SDK", "Gemini 2.5 Flash", "Framer Motion", "Tailwind CSS v4"],
       "url": "",
       "github": "",
-      "image": "/images/projects/portfolio.png",
-      "year": 2026
+      "image": "",
+      "year": 2026,
+      "motivation": {
+        "ja": "従来のポートフォリオサイトは静的なページ遷移の羅列で、訪問者が受動的に読み進めるだけ。AIチャットボットを中心に据えることで、訪問者が能動的に知りたいことを質問し、それに応じてデザインごと変化するインタラクティブな体験を実現したかった。",
+        "en": "Traditional portfolios are static page-by-page lists where visitors passively read through content. By centering an AI chatbot, visitors actively ask what they want to know, and the entire design transforms in response—creating a truly interactive experience."
+      },
+      "highlights": {
+        "ja": [
+          "Vercel AI SDK + Gemini 2.5 Flashによるリアルタイムストリーミングレスポンスとツールコール",
+          "31種類のデザインテンプレート（8カテゴリ）をAIが文脈に応じて動的に選択",
+          "Framer Motionによるテンプレート間のシームレスなトランジションアニメーション",
+          "頻出クエリのインテント分類とキャッシュレスポンスで即時表示を実現"
+        ],
+        "en": [
+          "Real-time streaming responses and tool calls via Vercel AI SDK + Gemini 2.5 Flash",
+          "AI dynamically selects from 31 design templates (8 categories) based on conversation context",
+          "Seamless transition animations between templates powered by Framer Motion",
+          "Intent classification and cached responses for frequently asked queries enable instant display"
+        ]
+      }
     }
   ]
 }

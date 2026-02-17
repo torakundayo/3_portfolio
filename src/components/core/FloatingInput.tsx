@@ -22,6 +22,13 @@ const buttonStyleClasses: Record<InputStyle, string> = {
 
 const SUGGEST_KEYWORDS = ['スキル', '経歴', 'プロジェクト', '連絡先'];
 
+const WELCOME_SUGGESTIONS = [
+  { label: 'スキルを見る', query: 'どんなスキルがありますか？' },
+  { label: '開発実績', query: 'プロジェクトを見せて' },
+  { label: '経歴', query: '経歴を教えて' },
+  { label: 'このサイトの仕組み', query: 'このサイトはどういう仕組みですか？' },
+];
+
 interface FloatingInputProps {
   position: InputPosition;
   style: InputStyle;
@@ -63,11 +70,24 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
     return () => window.removeEventListener('mousemove', measureProximity);
   }, [hasGlow, measureProximity]);
 
-  // Detect focus without typing → show suggestions after 3s
+  // Proactive welcome suggestions: show after brief entry delay when in center (welcome) mode
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+
+  useEffect(() => {
+    if (isCenter && !isTyping && !welcomeDismissed) {
+      const t = setTimeout(() => setShowWelcome(true), 1500);
+      return () => clearTimeout(t);
+    } else {
+      setShowWelcome(false);
+    }
+  }, [isCenter, isTyping, welcomeDismissed]);
+
+  // Detect focus without typing → show suggestions after 3s (non-welcome state)
   useEffect(() => {
     if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
 
-    if (isFocused && !isTyping && isCenter) {
+    if (isFocused && !isTyping && !isCenter) {
       suggestTimerRef.current = setTimeout(() => setShowSuggestions(true), 3000);
     } else {
       setShowSuggestions(false);
@@ -84,12 +104,14 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
     sendMessage({ text: input.trim() });
     setInput('');
     setShowSuggestions(false);
+    setWelcomeDismissed(true);
   };
 
   const handleSuggestClick = (keyword: string) => {
     sendMessage({ text: keyword });
     setInput('');
     setShowSuggestions(false);
+    setWelcomeDismissed(true);
   };
 
   const glowDuration = isTyping ? 1.5 : 4;
@@ -129,18 +151,16 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
         </motion.div>
       )}
 
-      <motion.div
-        animate={!isFocused && !isTyping ? {
-          scale: isCenter ? [1, 1.008, 1] : [1, 1.003, 1],
-        } : { scale: 1 }}
-        transition={{ duration: isCenter ? 4 : 3, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="relative">
-          {/* Animated conic-gradient glow border */}
+      <div className="relative">
+          {/* Breathing glow border (decorative only — does NOT wrap the form) */}
           {hasGlow && (
             <motion.div
-              className="absolute -inset-[1px] rounded-2xl overflow-hidden"
+              className="absolute -inset-[1px] rounded-2xl overflow-hidden pointer-events-none"
               style={{ opacity: glowOpacity }}
+              animate={!isFocused && !isTyping ? {
+                scale: isCenter ? [1, 1.008, 1] : [1, 1.003, 1],
+              } : { scale: 1 }}
+              transition={{ duration: isCenter ? 4 : 3, repeat: Infinity, ease: 'easeInOut' }}
             >
               <div
                 className="absolute inset-0"
@@ -215,7 +235,49 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
             )}
           </form>
 
-          {/* Suggestion keywords: appear when focused but not typing */}
+          {/* Welcome proactive suggestions: shown immediately in center mode */}
+          <AnimatePresence>
+            {showWelcome && (
+              <motion.div
+                className="mt-4 flex flex-col items-center gap-3"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
+              >
+                <motion.p
+                  className="text-white/30 text-[11px] tracking-wider"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  例えば、こんなことが聞けます
+                </motion.p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {WELCOME_SUGGESTIONS.map((s, i) => (
+                    <motion.button
+                      key={s.label}
+                      type="button"
+                      onClick={() => handleSuggestClick(s.query)}
+                      className="px-3.5 py-1.5 rounded-full text-[12px] text-white/50
+                                 bg-white/[0.05] border border-white/[0.08]
+                                 hover:text-white/80 hover:bg-white/[0.10] hover:border-white/[0.15]
+                                 transition-all duration-300 cursor-pointer select-none"
+                      initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: 0.3 + i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {s.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Suggestion keywords: appear when focused but not typing (non-welcome) */}
           <AnimatePresence>
             {showSuggestions && (
               <motion.div
@@ -244,7 +306,6 @@ export function FloatingInput({ position, style, sendMessage, isLoading }: Float
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
     </motion.div>
   );
 }

@@ -31,7 +31,7 @@ import { ContactFullscreenCta } from './contact/FullscreenCta';
 import { TextMagazineLayout } from './text/MagazineLayout';
 import { TextLetterFormat } from './text/LetterFormat';
 import { TextHighlightBox } from './text/HighlightBox';
-import { TextQaFormat } from './text/QaFormat';
+import { TextQaFormat } from './text/QAFormat';
 
 interface TemplateEntry {
   component: ComponentType<TemplateProps>;

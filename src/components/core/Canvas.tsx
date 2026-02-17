@@ -189,7 +189,7 @@ export function Canvas() {
               animate="animate"
               exit="exit"
               transition={config}
-              className="absolute inset-0"
+              className={`absolute top-0 left-0 right-0 ${isWelcome ? 'bottom-0' : 'bottom-[72px]'}`}
               style={{ transformStyle: 'preserve-3d' }}
             >
               {TemplateComponent ? (

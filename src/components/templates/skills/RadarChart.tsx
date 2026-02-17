@@ -39,14 +39,14 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
       return values
         .map((val, i) => {
           const angle = startAngle + i * angleStep;
-          const r = (val / levels) * maxR;
+          const r = ((val || 0) / levels) * maxR;
           const x = cx + r * Math.cos(angle);
           const y = cy + r * Math.sin(angle);
-          return `${x},${y}`;
+          return `${Number.isFinite(x) ? x : cx},${Number.isFinite(y) ? y : cy}`;
         })
         .join(' ');
     };
-  }, [n]);
+  }, [n, levels, maxR, cx, cy]);
 
   // Grid ring points (for concentric pentagons/polygons)
   const gridRings = useMemo(() => {
@@ -59,9 +59,6 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
   // Data polygon
   const dataValues = skills.map((s: any) => Math.min(Math.max(s.level ?? 0, 0), 5));
   const dataPoints = getPolygonPoints(dataValues);
-
-  // Collapsed polygon (all zeros) for animation
-  const zeroPoints = getPolygonPoints(Array(n).fill(0));
 
   // Label positions (slightly outside the chart)
   const labelPositions = useMemo(() => {
@@ -194,19 +191,17 @@ export function SkillsRadarChart({ data, commentary, visualSeed }: TemplateProps
               />
             ))}
 
-            {/* Data polygon fill */}
+            {/* Data polygon fill — no points string animation (causes NaN in framer-motion) */}
             <motion.polygon
               points={dataPoints}
               fill={`url(#radarGlow-${visualSeed.accentIndex})`}
               stroke={palette.primary}
               strokeWidth={2}
               filter="url(#glow)"
-              initial={{ points: zeroPoints, opacity: 0 }}
-              animate={{ points: dataPoints, opacity: 1 }}
-              transition={{
-                points: { ...SPRING_ENTER, delay: baseDelay + 0.5 },
-                opacity: { duration: 0.4, delay: baseDelay + 0.5 },
-              }}
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...SPRING_ENTER, delay: baseDelay + 0.5 }}
+              style={{ transformOrigin: `${cx}px ${cy}px` }}
             />
 
             {/* Data points (dots) */}

@@ -49,14 +49,11 @@ function parseQa(text: string): QaItem[] {
     items.push({ question: currentQ, answer: currentA.trim() });
   }
 
-  // Fallback: if no Q&A parsed, treat each paragraph as a section
+  // Fallback: if no Q&A parsed, show the entire text as a single answer
   if (items.length === 0 && text.trim()) {
-    const paragraphs = text.split('\n\n').filter((p) => p.trim());
-    paragraphs.forEach((p, i) => {
-      items.push({
-        question: `Section ${i + 1}`,
-        answer: p.trim(),
-      });
+    items.push({
+      question: text.trim().split(/[。.!！?\n]/)[0].slice(0, 60) || '回答',
+      answer: text.trim(),
     });
   }
 
