@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProfileData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplateProps) {
-  const profile = data as any;
+  const profile = data as ProfileData;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
@@ -167,12 +167,9 @@ export function ProfileMinimalIntro({ data, commentary, visualSeed }: TemplatePr
           {commentary && (
             <motion.div
               variants={slideUp}
-              className="mt-16 pt-8 border-t border-gray-100"
+              className="mt-16 opacity-60 hover:opacity-90 transition-opacity duration-500"
               style={revealStyle(2)}
             >
-              <p className="text-xs text-gray-800 uppercase tracking-normal mb-5" style={{ transform: 'translateZ(25px)' }}>
-                Commentary
-              </p>
               <div className="prose prose-sm prose-gray prose-p:text-gray-800 prose-p:leading-relaxed max-w-none line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
               </div>

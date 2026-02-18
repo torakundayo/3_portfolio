@@ -50,3 +50,82 @@ export interface AccentPalette {
   secondary: string;
   glow: string;
 }
+
+/* ─── Category-specific data types ─── */
+
+export interface I18nText {
+  ja?: string;
+  en?: string;
+}
+
+export interface ProfileData {
+  name?: I18nText;
+  title?: I18nText;
+  location?: I18nText;
+  introduction?: I18nText;
+  background?: I18nText;
+  links?: {
+    github?: string;
+    linkedin?: string;
+  };
+}
+
+export interface CareerEntry {
+  company?: I18nText;
+  period?: string;
+  role?: I18nText;
+  description?: I18nText;
+  highlights?: { ja?: string[]; en?: string[] };
+}
+
+export interface CareerData {
+  history: CareerEntry[];
+}
+
+export interface Skill {
+  name: string;
+  level: number;
+  yearsOfExperience?: number;
+  years?: number;
+  description?: string;
+  details?: I18nText;
+}
+
+export interface SkillCategory {
+  name?: I18nText;
+  skills: Skill[];
+}
+
+export interface SkillsData {
+  categories: SkillCategory[];
+}
+
+export interface Project {
+  name: string;
+  tagline?: I18nText;
+  description?: I18nText;
+  stack?: string[];
+  url?: string;
+  github?: string;
+  image?: string;
+  year?: number;
+  motivation?: I18nText;
+  highlights?: { ja?: string[]; en?: string[] };
+}
+
+export interface ProjectsData {
+  projects: Project[];
+}
+
+export interface ValuesData {
+  beliefs?: I18nText;
+  visionForFutureSaaS?: I18nText;
+  workStyle?: I18nText;
+}
+
+export interface ContactData {
+  email?: string;
+  github?: string;
+  linkedin?: string;
+  message?: I18nText;
+}

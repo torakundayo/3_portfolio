@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, SkillsData, SkillCategory } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { breatheStyle } from '@/lib/animation';
 import {
@@ -19,12 +19,20 @@ const CAT_COLORS = (palette: { primary: string; secondary: string; glow: string 
 
 export function SkillsConstellation({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
-  const skillsData = data as any;
-  const categories: any[] = skillsData?.categories ?? [];
+  const skillsData = data as SkillsData;
+  const categories: SkillCategory[] = skillsData?.categories ?? [];
   const baseDelay = visualSeed.animationDelay;
   const colors = CAT_COLORS(palette);
 
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [vpWidth, setVpWidth] = useState(1440);
+  useEffect(() => {
+    setVpWidth(window.innerWidth);
+    const onResize = () => setVpWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const isMobile = vpWidth < 768;
 
   // Flatten skills into SpatialItems
   const { items, flat } = useMemo(() => {
@@ -33,7 +41,7 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
 
     categories.forEach((cat, catIdx) => {
       const catName = cat.name?.ja ?? cat.name?.en ?? `cat-${catIdx}`;
-      (cat.skills ?? []).forEach((skill: any) => {
+      (cat.skills ?? []).forEach((skill) => {
         const level = Math.min(Math.max(skill.level ?? 0, 0), 5);
         flat.push({
           name: skill.name ?? '',
@@ -57,8 +65,8 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
   // Calculate positions
   const positions = useMemo(
     () =>
-      calculateSpatialPositions(items, { width: 100, height: 100 }, visualSeed),
-    [items, visualSeed],
+      calculateSpatialPositions(items, { width: 100, height: 100 }, visualSeed, vpWidth),
+    [items, visualSeed, vpWidth],
   );
 
   // Connections for SVG lines
@@ -101,11 +109,11 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
               x2={`${positions[b].x}%`}
               y2={`${positions[b].y}%`}
               stroke={catColor}
-              strokeOpacity={0.12}
+              strokeOpacity={0.18}
               strokeWidth={1}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: baseDelay + 0.5 + i * 0.05 }}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 1.2, delay: baseDelay + 0.4 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
             />
           );
         })}
@@ -117,8 +125,8 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
         if (!pos) return null;
 
         const catColor = colors[skill.catIdx % colors.length];
-        // Node size: 20–48px based on level
-        const nodeSize = 20 + skill.level * 5.6;
+        // Node size: responsive based on viewport and level
+        const nodeSize = isMobile ? 16 + skill.level * 4 : 20 + skill.level * 5.6;
         const isHovered = hoveredIdx === i;
 
         return (
@@ -134,11 +142,11 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
               transform: `translate3d(-50%, -50%, ${pos.z}px)`,
               ...breatheStyle(i % 6),
             }}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: pos.opacity, scale: pos.scale }}
+            initial={{ opacity: 0, scale: 0, filter: 'blur(8px)' }}
+            animate={{ opacity: pos.opacity, scale: pos.scale, filter: 'blur(0px)' }}
             transition={{
-              duration: 0.8,
-              delay: baseDelay + 0.2 + i * 0.06,
+              duration: 0.7,
+              delay: baseDelay + 0.2 + i * 0.12,
               ease: [0.22, 1, 0.36, 1],
             }}
             onMouseEnter={() => setHoveredIdx(i)}
@@ -166,13 +174,8 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
 
             {/* Skill name — shown on node */}
             <span
-              className="relative z-10 text-[10px] md:text-[11px] font-medium text-gray-800
+              className="relative z-10 text-xs md:text-sm font-medium text-gray-800
                          whitespace-nowrap select-none pointer-events-none leading-none text-center px-1"
-              style={{
-                maxWidth: nodeSize * 2,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
             >
               {skill.name}
             </span>
@@ -212,7 +215,7 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: baseDelay + 1 }}
       >
-        {categories.map((cat: any, i: number) => (
+        {categories.map((cat, i) => (
           <div key={i} className="flex items-center gap-1.5">
             <div
               className="w-2 h-2 rounded-full"
@@ -238,12 +241,6 @@ export function SkillsConstellation({ data, commentary, visualSeed }: TemplatePr
           whileHover={{ opacity: 0.85 }}
           transition={{ duration: 1.2, delay: baseDelay + 1.2 }}
         >
-          <p
-            className="text-[10px] uppercase tracking-[0.2em] mb-1.5"
-            style={{ color: palette.secondary }}
-          >
-            AI Commentary
-          </p>
           <div className="prose prose-sm prose-p:text-gray-800 prose-p:text-xs prose-p:leading-relaxed max-w-none line-clamp-4">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </div>

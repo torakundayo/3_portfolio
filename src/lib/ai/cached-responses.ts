@@ -30,6 +30,18 @@ export interface CachedResponse {
 const responseBank: Record<IntentCategory, CachedResponse[]> = {
   profile: [
     {
+      templateId: 'profile-spatial-hero',
+      dataTools: [{ toolName: 'getProfile', output: profile }],
+      commentary:
+        'フルスタックエンジニアとして、技術とデザインの境界を越えたものづくりを追求しています。',
+    },
+    {
+      templateId: 'profile-spatial-hero',
+      dataTools: [{ toolName: 'getProfile', output: profile }],
+      commentary:
+        '技術とクリエイティブの交差点に立ち、使い手の体験を第一に考えるエンジニアです。',
+    },
+    {
       templateId: 'profile-hero-split',
       dataTools: [{ toolName: 'getProfile', output: profile }],
       commentary:
@@ -56,6 +68,18 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
   ],
 
   projects: [
+    {
+      templateId: 'projects-spatial-orbit',
+      dataTools: [{ toolName: 'getProjects', output: projects }],
+      commentary:
+        '各プロジェクトが持つ技術的な挑戦と解決策を、つながりの中でご覧ください。',
+    },
+    {
+      templateId: 'projects-spatial-orbit',
+      dataTools: [{ toolName: 'getProjects', output: projects }],
+      commentary:
+        '実用性と技術的好奇心の両立を目指して、一つひとつ丁寧に作り上げてきました。',
+    },
     {
       templateId: 'projects-horizontal-slider',
       dataTools: [{ toolName: 'getProjects', output: projects }],
@@ -90,6 +114,18 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
 
   skills: [
     {
+      templateId: 'skills-constellation',
+      dataTools: [{ toolName: 'getSkills', output: skills }],
+      commentary:
+        'それぞれのスキルは独立ではなく、プロジェクトの中で相互に結びついて力を発揮します。',
+    },
+    {
+      templateId: 'skills-constellation',
+      dataTools: [{ toolName: 'getSkills', output: skills }],
+      commentary:
+        '技術の深さと幅を両立させながら、常に新しいスタックにもチャレンジしています。',
+    },
+    {
       templateId: 'skills-bar-chart',
       dataTools: [{ toolName: 'getSkills', output: skills }],
       commentary:
@@ -123,6 +159,18 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
 
   career: [
     {
+      templateId: 'career-spatial-journey',
+      dataTools: [{ toolName: 'getCareer', output: career }],
+      commentary:
+        'キャリアの各ステップが次の挑戦へのきっかけとなり、今の自分を形作っています。',
+    },
+    {
+      templateId: 'career-spatial-journey',
+      dataTools: [{ toolName: 'getCareer', output: career }],
+      commentary:
+        '異なる環境で培った経験が、今のフルスタック開発の基盤になっています。',
+    },
+    {
       templateId: 'career-vertical-timeline',
       dataTools: [{ toolName: 'getCareer', output: career }],
       commentary:
@@ -150,6 +198,18 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
 
   values: [
     {
+      templateId: 'values-spatial-beliefs',
+      dataTools: [{ toolName: 'getValues', output: values }],
+      commentary:
+        '技術選定もプロダクト設計も、すべてこの信念から始まります。',
+    },
+    {
+      templateId: 'values-spatial-beliefs',
+      dataTools: [{ toolName: 'getValues', output: values }],
+      commentary:
+        '「使い手にとって本当に価値があるか」— その問いを常に持ち続けています。',
+    },
+    {
       templateId: 'values-quote-card',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
@@ -170,6 +230,18 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
   ],
 
   contact: [
+    {
+      templateId: 'contact-spatial-contact',
+      dataTools: [{ toolName: 'getContact', output: contact }],
+      commentary:
+        'どんなお話でもお気軽にどうぞ。最も便利な方法でご連絡ください。',
+    },
+    {
+      templateId: 'contact-spatial-contact',
+      dataTools: [{ toolName: 'getContact', output: contact }],
+      commentary:
+        'お仕事のご相談でもカジュアルなお話でも、お待ちしています。',
+    },
     {
       templateId: 'contact-card',
       dataTools: [{ toolName: 'getContact', output: contact }],
@@ -192,6 +264,12 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
 
   'about-site': [
     {
+      templateId: 'text-spatial-prose',
+      dataTools: [{ toolName: 'getValues', output: values }],
+      commentary:
+        'ページ遷移もスクロールもない、AI対話だけで情報が届く — このサイトそのものが次世代WebのUX実験です。\n\nNext.js 16 + Vercel AI SDK + Gemini 2.5 Flashを組み合わせ、30以上のデザインテンプレートをAIが質問に応じてリアルタイム選択しています。',
+    },
+    {
       templateId: 'text-magazine-layout',
       dataTools: [{ toolName: 'getValues', output: values }],
       commentary:
@@ -213,8 +291,15 @@ const responseBank: Record<IntentCategory, CachedResponse[]> = {
 };
 
 /**
+ * Number of "preferred" (spatial) entries at the start of each category.
+ * getCachedResponse picks from these first; traditional templates are only
+ * used once all preferred variants have been shown in the current session.
+ */
+const PREFERRED_COUNT = 2;
+
+/**
  * Pick a cached response for the given intent, avoiding recently used templates.
- * Returns null if all variants have been used (unlikely with enough variants).
+ * Strongly prefers spatial templates (first PREFERRED_COUNT entries) over traditional ones.
  */
 export function getCachedResponse(
   intent: IntentCategory,
@@ -223,10 +308,21 @@ export function getCachedResponse(
   const variants = responseBank[intent];
   if (!variants || variants.length === 0) return null;
 
-  // Prefer templates not yet used in this session
-  const unused = variants.filter((v) => !usedTemplates.includes(v.templateId));
-  const pool = unused.length > 0 ? unused : variants;
+  const preferred = variants.slice(0, PREFERRED_COUNT);
+  const fallback = variants.slice(PREFERRED_COUNT);
 
-  // Random pick from the pool
-  return pool[Math.floor(Math.random() * pool.length)];
+  // 1. Try unused preferred (spatial) first
+  const unusedPreferred = preferred.filter((v) => !usedTemplates.includes(v.templateId));
+  if (unusedPreferred.length > 0) {
+    return unusedPreferred[Math.floor(Math.random() * unusedPreferred.length)];
+  }
+
+  // 2. If all preferred are used, try unused fallback (traditional)
+  const unusedFallback = fallback.filter((v) => !usedTemplates.includes(v.templateId));
+  if (unusedFallback.length > 0) {
+    return unusedFallback[Math.floor(Math.random() * unusedFallback.length)];
+  }
+
+  // 3. All variants used — cycle back to preferred
+  return preferred[Math.floor(Math.random() * preferred.length)];
 }

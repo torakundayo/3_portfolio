@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProfileData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplateProps) {
-  const profile = data as any;
+  const profile = data as ProfileData;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const gradientAngle = 200 + visualSeed.colorOffset * 0.2;
   const baseDelay = visualSeed.animationDelay;
@@ -216,15 +216,9 @@ export function ProfileFullPortrait({ data, commentary, visualSeed }: TemplatePr
               {commentary && (
                 <motion.div
                   variants={slideFromBottom}
-                  className="mt-4 pt-4 border-t border-gray-200"
+                  className="mt-4 opacity-60 hover:opacity-90 transition-opacity duration-500"
                   style={revealStyle(2)}
                 >
-                  <p
-                    className="text-xs uppercase tracking-[0.25em] mb-2"
-                    style={{ color: palette.secondary, transform: 'translateZ(25px)' }}
-                  >
-                    AI Commentary
-                  </p>
                   <div
                     className="prose prose-sm prose-p:text-gray-800 prose-p:text-sm prose-p:leading-relaxed max-w-none line-clamp-3"
                     style={{ transform: 'translateZ(15px)' }}

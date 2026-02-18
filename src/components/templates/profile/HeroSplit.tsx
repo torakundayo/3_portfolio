@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProfileData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger, seededDecoration } from '@/lib/animation';
 
 export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps) {
-  const profile = data as any;
+  const profile = data as ProfileData;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const gradientAngle = 135 + visualSeed.colorOffset * 0.25;
   const baseDelay = visualSeed.animationDelay;
@@ -135,9 +135,6 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
       {/* Introduction */}
       {(profile?.introduction?.ja || profile?.introduction?.en) && (
         <div className="mb-8" style={revealStyle(0)}>
-          <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.glow, transform: 'translateZ(25px)' }}>
-            Introduction
-          </p>
           <p className="text-base md:text-lg text-gray-800 leading-relaxed font-normal line-clamp-5" style={{ transform: 'translateZ(15px)' }}>
             {profile.introduction.ja || profile.introduction.en}
           </p>
@@ -147,9 +144,6 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
       {/* Background */}
       {(profile?.background?.ja || profile?.background?.en) && (
         <div className="mb-8" style={revealStyle(1)}>
-          <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.glow, transform: 'translateZ(25px)' }}>
-            Background
-          </p>
           <p className="text-sm md:text-base text-gray-800 leading-relaxed font-normal line-clamp-4" style={{ transform: 'translateZ(15px)' }}>
             {profile.background.ja || profile.background.en}
           </p>
@@ -162,12 +156,9 @@ export function ProfileHeroSplit({ data, commentary, visualSeed }: TemplateProps
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: baseDelay + 0.6 }}
-          className="mt-4 pt-6 border-t border-gray-200"
+          className="mt-4 opacity-60 hover:opacity-90 transition-opacity duration-500"
           style={revealStyle(2)}
         >
-          <p className="text-xs uppercase tracking-[0.2em] mb-4" style={{ color: palette.secondary, transform: 'translateZ(25px)' }}>
-            AI Commentary
-          </p>
           <div className="prose prose-sm prose-p:text-gray-800 max-w-none line-clamp-6" style={{ transform: 'translateZ(15px)' }}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </div>

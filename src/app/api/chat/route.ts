@@ -1,11 +1,15 @@
 import { google } from '@ai-sdk/google';
-import { streamText, stepCountIs, convertToModelMessages } from 'ai';
+import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from 'ai';
 import { tools } from '@/lib/ai/tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 
+// Best-effort in-memory rate limit (per warm instance).
+// Serverless cold starts reset the map, but it still guards against
+// burst abuse within a single instance's lifetime.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 20; // requests per window
 const RATE_WINDOW = 60_000; // 1 minute
+const MAX_MAP_SIZE = 500; // prevent unbounded memory growth
 const MAX_MESSAGES = 30;
 
 function getRateLimitKey(req: Request): string {
@@ -16,6 +20,16 @@ function getRateLimitKey(req: Request): string {
 
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
+
+  // Evict stale entries to bound memory usage
+  if (rateLimitMap.size > MAX_MAP_SIZE) {
+    for (const [k, v] of rateLimitMap) {
+      if (now > v.resetAt) rateLimitMap.delete(k);
+    }
+    // If still too large after cleanup, clear entirely
+    if (rateLimitMap.size > MAX_MAP_SIZE) rateLimitMap.clear();
+  }
+
   const entry = rateLimitMap.get(key);
 
   if (!entry || now > entry.resetAt) {
@@ -61,7 +75,7 @@ export async function POST(req: Request) {
 
   try {
     // Convert UIMessage[] (parts-based) to ModelMessage[] (content-based)
-    const modelMessages = await convertToModelMessages(trimmedMessages as any, { tools });
+    const modelMessages = await convertToModelMessages(trimmedMessages as UIMessage[], { tools });
 
     const result = streamText({
       model: google('gemini-2.5-flash'),

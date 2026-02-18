@@ -13,6 +13,8 @@ import {
 import { seededRandom, organicRadius, breatheStyle, revealStyle } from '@/lib/animation';
 import { accentPalettes } from '@/lib/visual-seed';
 import type { AccentPalette } from '@/lib/types';
+import { DepthLayer, OrbitalRings, AmbientParticles, MouseGlow } from '@/components/core/TemplateShell';
+import { useBreathingCycle } from '@/hooks/useBreathingCycle';
 import profile from '@/data/profile.json';
 import projects from '@/data/projects.json';
 import skills from '@/data/skills.json';
@@ -60,8 +62,29 @@ function computeLayout(isMobile: boolean): NodeConfig[] {
     })),
   ];
   const count = base.length;
-  const radius = isMobile ? 20 : (count <= 6 ? 33 : count <= 9 ? 28 : 24);
-  const sc = isMobile ? 0.65 : (count <= 6 ? 0.85 : count <= 9 ? 0.75 : 0.68);
+
+  if (isMobile) {
+    // Mobile: vertical stagger layout to avoid text overlap on narrow screens
+    // Distribute nodes in a wider ellipse that uses the tall viewport
+    const radius = 30;
+    const sc = 0.55;
+    return base.map((b, i) => {
+      const angle = (i / count) * Math.PI * 2 - Math.PI * 0.5;
+      return {
+        ...b,
+        // Alternate x offset to stagger nodes left/right
+        x: Math.cos(angle) * radius * 0.6,
+        // Use more vertical space (no 0.55 compression)
+        y: Math.sin(angle) * radius * 0.85,
+        delay: 0.8 + i * 0.15,
+        seed: 300 + i * 100,
+        scale: sc,
+      };
+    });
+  }
+
+  const radius = count <= 6 ? 33 : count <= 9 ? 28 : 24;
+  const sc = count <= 6 ? 0.85 : count <= 9 ? 0.75 : 0.68;
 
   return base.map((b, i) => {
     const angle = (i / count) * Math.PI * 2 - Math.PI * 0.4;
@@ -74,29 +97,6 @@ function computeLayout(isMobile: boolean): NodeConfig[] {
       scale: sc,
     };
   });
-}
-
-/* ═══ DepthLayer ═══ */
-function DepthLayer({
-  depth, mouseX, mouseY, children, className = '',
-}: {
-  depth: number; mouseX: MotionValue<number>; mouseY: MotionValue<number>;
-  children: React.ReactNode; className?: string;
-}) {
-  const stiffness = 45 - depth * 5;
-  const sx = useSpring(mouseX, { stiffness, damping: 22 });
-  const sy = useSpring(mouseY, { stiffness, damping: 22 });
-  const factor = Math.max(0, (3 - depth) * 9);
-  const x = useTransform(sx, (v) => v * factor);
-  const y = useTransform(sy, (v) => v * factor);
-  return (
-    <motion.div
-      className={`absolute inset-0 pointer-events-none ${className}`}
-      style={{ x, y, willChange: 'transform', isolation: 'isolate' as const }}
-    >
-      {children}
-    </motion.div>
-  );
 }
 
 /* ═══ FloatingNode ═══ */
@@ -165,7 +165,7 @@ function FloatingNode({
         }
       }}
     >
-      {interactive && <div className="absolute -inset-10" aria-hidden="true" />}
+      {interactive && <div className="absolute -inset-10 pointer-events-none" aria-hidden="true" />}
       <div>
         {children}
       </div>
@@ -187,48 +187,6 @@ function HeartbeatPulse({ palette }: { palette: AccentPalette }) {
         />
       ))}
     </div>
-  );
-}
-
-/* ═══ AmbientParticles — count adapts to node count ═══ */
-function AmbientParticles({ count = 18, palette }: { count?: number; palette: AccentPalette }) {
-  const particles = useMemo(() => {
-    const r = seededRandom(77);
-    return Array.from({ length: count }, (_, i) => ({
-      id: i,
-      x: (r() - 0.5) * 92, y: (r() - 0.5) * 92,
-      size: 0.8 + r() * 2.5,
-      dur: 24 + r() * 26, delay: r() * 10,
-      dx: [(r() - 0.5) * 50, (r() - 0.5) * 40, (r() - 0.5) * 45],
-      dy: [(r() - 0.5) * 45, (r() - 0.5) * 50, (r() - 0.5) * 35],
-      op: 0.04 + r() * 0.14,
-      glow: r() > 0.82,
-    }));
-  }, [count]);
-
-  return (
-    <>
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full pointer-events-none"
-          aria-hidden="true"
-          style={{
-            width: p.size, height: p.size,
-            left: `calc(50% + ${p.x}vw)`, top: `calc(50% + ${p.y}vh)`,
-            background: p.glow ? `rgba(${hexToRgb(palette.primary)},${p.op * 2.5})` : `rgba(0,0,0,${p.op})`,
-            boxShadow: p.glow ? `0 0 ${p.size * 6}px rgba(${hexToRgb(palette.primary)},${p.op})` : undefined,
-          }}
-          animate={{
-            x: [0, p.dx[0], p.dx[1], p.dx[2], 0],
-            y: [0, p.dy[0], p.dy[1], p.dy[2], 0],
-            opacity: [p.op, p.op * 1.8, p.op * 0.2, p.op * 1.5, p.op],
-            scale: [1, 1.4, 0.6, 1.3, 1],
-          }}
-          transition={{ duration: p.dur, repeat: Infinity, ease: 'easeInOut', delay: p.delay }}
-        />
-      ))}
-    </>
   );
 }
 
@@ -289,44 +247,6 @@ function NeuralLines({ hovered, nodes, palette }: { hovered: string | null; node
         </filter>
       </defs>
     </svg>
-  );
-}
-
-/* ═══ OrbitalRings ═══ */
-function OrbitalRings({ palette }: { palette: AccentPalette }) {
-  return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true">
-      {[14, 27, 40].map((r, i) => (
-        <motion.ellipse
-          key={i} cx="50%" cy="50%" rx={`${r}%`} ry={`${r * 0.42}%`}
-          fill="none" stroke={`rgba(${hexToRgb(palette.primary)},${0.02 - i * 0.004})`}
-          strokeWidth="0.5" strokeDasharray="2 14"
-          animate={{ opacity: [0.01, 0.04, 0.01], rotate: i % 2 === 0 ? [0, 360] : [360, 0] }}
-          transition={{
-            opacity: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: i * 5 },
-            rotate: { duration: 100 + i * 30, repeat: Infinity, ease: 'linear' },
-          }}
-          style={{ transformOrigin: '50% 50%' }}
-        />
-      ))}
-    </svg>
-  );
-}
-
-/* ═══ MouseGlow ═══ */
-function MouseGlow({ mouseX, mouseY, palette }: { mouseX: MotionValue<number>; mouseY: MotionValue<number>; palette: AccentPalette }) {
-  const sx = useSpring(mouseX, { stiffness: 50, damping: 30 });
-  const sy = useSpring(mouseY, { stiffness: 50, damping: 30 });
-  const left = useTransform(sx, (v) => `calc(${(v + 1) * 50}% - 220px)`);
-  const top = useTransform(sy, (v) => `calc(${(v + 1) * 50}% - 220px)`);
-  return (
-    <motion.div
-      className="absolute w-[440px] h-[440px] rounded-full pointer-events-none"
-      aria-hidden="true"
-      style={{ left, top, background: `radial-gradient(circle, rgba(${hexToRgb(palette.primary)},0.035) 0%, rgba(${hexToRgb(palette.secondary)},0.015) 40%, transparent 70%)` }}
-      animate={{ scale: [1, 1.06, 1], opacity: [0.8, 1, 0.8] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-    />
   );
 }
 
@@ -557,6 +477,8 @@ export function StaticFallback() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
+  const breathPhase = useBreathingCycle();
+
   const tiltConfig = { stiffness: 14, damping: 28 };
   const tiltX = useSpring(useTransform(mouseX, (v) => v * 0.3), tiltConfig);
   const tiltY = useSpring(useTransform(mouseY, (v) => v * -0.2), tiltConfig);
@@ -591,7 +513,6 @@ export function StaticFallback() {
 
   const nodes = useMemo(() => computeLayout(isMobile), [isMobile]);
   const allSkills = useMemo(() => skills.categories.flatMap((c) => c.skills), []);
-  const particleCount = Math.max(6, 12 - nodes.length);
 
   const handleNodeClick = useCallback((id: string, origin: { x: number; y: number }) => {
     if (isMobile) {
@@ -639,7 +560,7 @@ export function StaticFallback() {
         <motion.div className="absolute inset-0" style={{ rotateX: tiltY, rotateY: tiltX }}>
 
           {/* ── DEPTH 3: Background ── */}
-          <DepthLayer depth={3} mouseX={mouseX} mouseY={mouseY}>
+          <DepthLayer depth={3} mouseX={mouseX} mouseY={mouseY} factorMultiplier={9}>
             <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 25% 20%, rgba(${primaryRgb},0.10) 0%, transparent 50%), radial-gradient(ellipse at 75% 80%, rgba(${hexToRgb(palette.secondary)},0.08) 0%, transparent 50%)` }} />
             <motion.div
               className="absolute inset-0"
@@ -648,12 +569,12 @@ export function StaticFallback() {
               transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at 50% 45%, rgba(${primaryRgb},0.035) 0%, transparent 55%)` }} />
-            <OrbitalRings palette={palette} />
+            <OrbitalRings palette={palette} breathPhase={breathPhase} />
             <ScatteredKeywords nodes={nodes} palette={palette} />
           </DepthLayer>
 
           {/* ── DEPTH 0: Center identity — enriched ── */}
-          <DepthLayer depth={0} mouseX={mouseX} mouseY={mouseY} className="z-[1]">
+          <DepthLayer depth={0} mouseX={mouseX} mouseY={mouseY} factorMultiplier={9} className="z-[1]">
             <FloatingNode x={0} y={isMobile ? -5 : -3} delay={0} seed={100}>
               <div className="text-center max-w-md mx-auto" style={{ textShadow: `0 0 60px rgba(${primaryRgb},0.15)` }}>
                 <motion.h1
@@ -726,14 +647,14 @@ export function StaticFallback() {
           </DepthLayer>
 
           {/* ── DEPTH 2: Particles & connections ── */}
-          <DepthLayer depth={2} mouseX={mouseX} mouseY={mouseY} className="z-[2]">
-            <AmbientParticles count={particleCount} palette={palette} />
+          <DepthLayer depth={2} mouseX={mouseX} mouseY={mouseY} factorMultiplier={9} className="z-[2]">
+            <AmbientParticles count={18} palette={palette} breathPhase={breathPhase} />
             <NeuralLines hovered={hovered} nodes={nodes} palette={palette} />
             <HeartbeatPulse palette={palette} />
           </DepthLayer>
 
           {/* ── DEPTH 1: Content nodes — enriched ── */}
-          <DepthLayer depth={1} mouseX={mouseX} mouseY={mouseY} className="z-[30]">
+          <DepthLayer depth={1} mouseX={mouseX} mouseY={mouseY} factorMultiplier={9} className="z-[30]">
             {nodes.map((node) => {
               const isNodeHovered = hovered === node.id;
               const isNodeDimmed = (hovered !== null && !isNodeHovered) || (expanded !== null && expanded !== node.id);
@@ -904,8 +825,8 @@ export function StaticFallback() {
           </DepthLayer>
 
           {/* ── DEPTH -1: Mouse glow ── */}
-          <DepthLayer depth={-1} mouseX={mouseX} mouseY={mouseY} className="z-[40]">
-            <MouseGlow mouseX={mouseX} mouseY={mouseY} palette={palette} />
+          <DepthLayer depth={-1} mouseX={mouseX} mouseY={mouseY} factorMultiplier={9} className="z-[40]">
+            <MouseGlow mouseX={mouseX} mouseY={mouseY} palette={palette} breathPhase={breathPhase} />
           </DepthLayer>
 
         </motion.div>

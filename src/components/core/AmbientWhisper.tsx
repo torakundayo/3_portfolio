@@ -50,11 +50,11 @@ export function AmbientWhisper({ message }: { message?: string }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{
-            opacity: { duration: 3, ease: [0.22, 1, 0.36, 1] },
+            opacity: { duration: 1.2, ease: [0.22, 1, 0.36, 1] },
           }}
         >
           <p
-            className="text-gray-700 text-sm
+            className="text-gray-800 text-sm font-medium
                        select-none max-w-sm text-center"
           >
             {displayedMessage}

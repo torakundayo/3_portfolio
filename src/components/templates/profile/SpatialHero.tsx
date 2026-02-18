@@ -1,22 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProfileData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { breatheStyle } from '@/lib/animation';
 
 export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplateProps) {
-  const profile = data as any;
+  const profile = data as ProfileData;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
   const [introExpanded, setIntroExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
-  // Mirror flips horizontal placement
-  const side = mirror ? -1 : 1;
+  // Mirror flips horizontal placement (disabled on mobile for clean stacking)
+  const side = isMobile ? 1 : mirror ? -1 : 1;
 
   return (
     <div className="h-full w-full overflow-hidden relative bg-white">
@@ -46,11 +53,11 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
       <motion.h1
         data-observe-zone="profile-name"
         className="absolute left-1/2 select-none pointer-events-none
-                   text-6xl md:text-8xl lg:text-9xl font-bold text-gray-900
+                   text-4xl md:text-8xl lg:text-9xl font-bold text-gray-900
                    leading-none tracking-tight whitespace-nowrap"
         style={{
-          top: '32%',
-          transform: `translate3d(-50%, -50%, 60px)`,
+          top: isMobile ? '20%' : '32%',
+          transform: `translate3d(-50%, -50%, ${isMobile ? 20 : 60}px)`,
           ...breatheStyle(0),
         }}
         initial={{ opacity: 0 }}
@@ -65,8 +72,8 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
         <motion.p
           className="absolute left-1/2 text-sm md:text-base text-gray-800 font-normal tracking-normal"
           style={{
-            top: '42%',
-            transform: 'translate3d(-50%, 0, 40px)',
+            top: isMobile ? '27%' : '42%',
+            transform: `translate3d(-50%, 0, ${isMobile ? 15 : 40}px)`,
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -80,8 +87,8 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
       <motion.p
         className="absolute left-1/2 text-lg md:text-xl font-medium"
         style={{
-          top: '48%',
-          transform: 'translate3d(-50%, 0, 35px)',
+          top: isMobile ? '32%' : '48%',
+          transform: `translate3d(-50%, 0, ${isMobile ? 10 : 35}px)`,
           color: palette.glow,
           ...breatheStyle(1),
         }}
@@ -97,8 +104,8 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
         <motion.p
           className="absolute left-1/2 text-xs text-gray-800 tracking-normal flex items-center gap-1.5"
           style={{
-            top: '53%',
-            transform: 'translate3d(-50%, 0, 20px)',
+            top: isMobile ? '37%' : '53%',
+            transform: `translate3d(-50%, 0, ${isMobile ? 8 : 20}px)`,
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -118,11 +125,13 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
           data-observe-zone="profile-intro"
           className="absolute max-w-xs md:max-w-sm cursor-pointer group"
           style={{
-            top: '30%',
-            ...(side > 0
-              ? { right: '6%' }
-              : { left: '6%' }),
-            transform: 'translate3d(0, 0, 25px)',
+            top: isMobile ? '44%' : '30%',
+            ...(isMobile
+              ? { left: '8%', right: '8%' }
+              : side > 0
+                ? { right: '6%' }
+                : { left: '6%' }),
+            transform: `translate3d(0, 0, ${isMobile ? 8 : 25}px)`,
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.85 }}
@@ -230,12 +239,6 @@ export function ProfileSpatialHero({ data, commentary, visualSeed }: TemplatePro
           whileHover={{ opacity: 0.8 }}
           transition={{ duration: 1.2, delay: baseDelay + 1, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p
-            className="text-[10px] uppercase tracking-[0.2em] mb-2"
-            style={{ color: palette.secondary }}
-          >
-            AI Commentary
-          </p>
           <div className="prose prose-sm prose-p:text-gray-800 prose-p:text-xs prose-p:leading-relaxed max-w-none line-clamp-4">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{commentary}</ReactMarkdown>
           </div>

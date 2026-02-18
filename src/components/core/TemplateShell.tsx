@@ -14,16 +14,16 @@ import { accentPalettes } from '@/lib/visual-seed';
 import { useBreathingCycle } from '@/hooks/useBreathingCycle';
 
 /* ═══ DepthLayer — parallax layer driven by mouse ═══ */
-function DepthLayer({
-  depth, mouseX, mouseY, children, className = '',
+export function DepthLayer({
+  depth, mouseX, mouseY, children, className = '', factorMultiplier = 2,
 }: {
   depth: number; mouseX: MotionValue<number>; mouseY: MotionValue<number>;
-  children: React.ReactNode; className?: string;
+  children: React.ReactNode; className?: string; factorMultiplier?: number;
 }) {
   const stiffness = 45 - depth * 5;
   const sx = useSpring(mouseX, { stiffness, damping: 22 });
   const sy = useSpring(mouseY, { stiffness, damping: 22 });
-  const factor = Math.max(0, (3 - depth) * 2);
+  const factor = Math.max(0, (3 - depth) * factorMultiplier);
   const x = useTransform(sx, (v) => v * factor);
   const y = useTransform(sy, (v) => v * factor);
   return (
@@ -37,7 +37,7 @@ function DepthLayer({
 }
 
 /* ═══ OrbitalRings — subtle rotating ellipses with breathing modulation ═══ */
-function OrbitalRings({ palette, breathPhase }: {
+export function OrbitalRings({ palette, breathPhase }: {
   palette: AccentPalette; breathPhase: MotionValue<number>;
 }) {
   // Modulate stroke opacity with breathing: exhale 0.3x → inhale 1.0x
@@ -48,11 +48,11 @@ function OrbitalRings({ palette, breathPhase }: {
       {[14, 27, 40].map((r, i) => (
         <motion.ellipse
           key={i} cx="50%" cy="50%" rx={`${r}%`} ry={`${r * 0.42}%`}
-          fill="none" stroke={`${palette.primary}${i === 0 ? '08' : '05'}`}
-          strokeWidth="0.5" strokeDasharray="2 14"
-          animate={{ opacity: [0.01, 0.04, 0.01], rotate: i % 2 === 0 ? [0, 360] : [360, 0] }}
+          fill="none" stroke={`${palette.primary}${i === 0 ? '25' : '18'}`}
+          strokeWidth="0.7" strokeDasharray="4 16"
+          animate={{ opacity: [0.20, 0.40, 0.20], rotate: i % 2 === 0 ? [0, 360] : [360, 0] }}
           transition={{
-            opacity: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: i * 5 },
+            opacity: { duration: 14, repeat: Infinity, ease: 'easeInOut', delay: i * 4 },
             rotate: { duration: 100 + i * 30, repeat: Infinity, ease: 'linear' },
           }}
           style={{ transformOrigin: '50% 50%', opacity: breathOpacity, willChange: 'transform, opacity' }}
@@ -63,7 +63,7 @@ function OrbitalRings({ palette, breathPhase }: {
 }
 
 /* ═══ AmbientParticles — CSS @keyframes driven (T-025) ═══ */
-function AmbientParticles({ count = 8, palette, attractionStrength = 0, breathPhase }: {
+export function AmbientParticles({ count = 8, palette, attractionStrength = 0, breathPhase }: {
   count?: number; palette: AccentPalette; attractionStrength?: number;
   breathPhase: MotionValue<number>;
 }) {
@@ -93,11 +93,11 @@ function AmbientParticles({ count = 8, palette, attractionStrength = 0, breathPh
       ];
       return {
         id: i, x, y,
-        size: 1.2 + r() * 3.5,
+        size: 2.0 + r() * 5.0,
         dur: attractBias > 0.3 ? 18 + r() * 20 : 24 + r() * 26,
         delay: r() * 10,
         dx, dy,
-        op: 0.08 + r() * 0.20,
+        op: 0.15 + r() * 0.35,
         glow: r() > 0.65,
       };
     });
@@ -124,8 +124,8 @@ function AmbientParticles({ count = 8, palette, attractionStrength = 0, breathPh
           style={{
             width: p.size, height: p.size,
             left: `calc(50% + ${p.x}vw)`, top: `calc(50% + ${p.y}vh)`,
-            background: p.glow ? `${palette.glow}30` : `${palette.primary}${Math.round(p.op * 255).toString(16).padStart(2, '0')}`,
-            boxShadow: p.glow ? `0 0 ${p.size * 6}px ${palette.glow}18` : undefined,
+            background: p.glow ? `${palette.glow}50` : `${palette.primary}${Math.round(p.op * 255).toString(16).padStart(2, '0')}`,
+            boxShadow: p.glow ? `0 0 ${p.size * 8}px ${palette.glow}40` : undefined,
             opacity: breathMod,
             animation: `pd-${p.id} ${p.dur}s ease-in-out ${p.delay}s infinite`,
             willChange: 'transform',
@@ -137,7 +137,7 @@ function AmbientParticles({ count = 8, palette, attractionStrength = 0, breathPh
 }
 
 /* ═══ MouseGlow — cursor-following radial gradient with breathing ═══ */
-function MouseGlow({ mouseX, mouseY, palette, intensityBoost = 0, breathPhase }: {
+export function MouseGlow({ mouseX, mouseY, palette, intensityBoost = 0, breathPhase }: {
   mouseX: MotionValue<number>; mouseY: MotionValue<number>; palette: AccentPalette;
   intensityBoost?: number; breathPhase: MotionValue<number>;
 }) {
@@ -156,7 +156,7 @@ function MouseGlow({ mouseX, mouseY, palette, intensityBoost = 0, breathPhase }:
         left: 'calc(50% - 180px)', top: 'calc(50% - 180px)',
         x: useTransform(x, (v) => `${v}%`),
         y: useTransform(y, (v) => `${v}%`),
-        background: `radial-gradient(circle, ${palette.primary}0c 0%, ${palette.secondary}08 40%, transparent 70%)`,
+        background: `radial-gradient(circle, ${palette.primary}1a 0%, ${palette.secondary}12 40%, transparent 70%)`,
         opacity: breathGlow,
         willChange: 'transform, opacity',
       }}
@@ -170,32 +170,45 @@ function MouseGlow({ mouseX, mouseY, palette, intensityBoost = 0, breathPhase }:
 }
 
 /* ═══ GradientMesh — performant CSS keyframe background with breathing ═══ */
-function GradientMesh({ palette, breathPhase }: {
-  palette: AccentPalette; breathPhase: MotionValue<number>;
+export function GradientMesh({ palette, breathPhase, intensified = false }: {
+  palette: AccentPalette; breathPhase: MotionValue<number>; intensified?: boolean;
 }) {
-  // Breathing modulation for mesh blobs: exhale 0.5x → inhale 1.0x
-  const breathMesh = useTransform(breathPhase, [0, 1], [0.5, 1.0]);
+  // Breathing modulation for mesh blobs: exhale 0.3x → inhale 1.0x
+  const breathMesh = useTransform(breathPhase, [0, 1], [0.3, 1.0]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       <motion.div
-        className="absolute w-[60vw] h-[60vh] rounded-full blur-3xl"
+        className={`absolute rounded-full blur-3xl ${intensified ? 'w-[75vw] h-[75vh]' : 'w-[60vw] h-[60vh]'}`}
         style={{
-          background: `${palette.primary}35`,
-          left: '20%', top: '15%',
-          animation: 'bg-drift-1 18s ease-in-out infinite',
+          background: `${palette.primary}${intensified ? '90' : '60'}`,
+          left: '15%', top: '10%',
+          animation: 'bg-drift-1 14s ease-in-out infinite',
           opacity: breathMesh,
         }}
       />
       <motion.div
-        className="absolute w-[50vw] h-[50vh] rounded-full blur-3xl"
+        className={`absolute rounded-full blur-3xl ${intensified ? 'w-[65vw] h-[65vh]' : 'w-[50vw] h-[50vh]'}`}
         style={{
-          background: `${palette.secondary}28`,
-          right: '15%', bottom: '20%',
-          animation: 'bg-drift-2 22s ease-in-out infinite',
+          background: `${palette.secondary}${intensified ? '70' : '50'}`,
+          right: '10%', bottom: '15%',
+          animation: 'bg-drift-2 16s ease-in-out infinite',
           opacity: breathMesh,
         }}
       />
+      {/* Third blob for richer atmosphere when intensified */}
+      {intensified && (
+        <motion.div
+          className="absolute w-[45vw] h-[45vh] rounded-full blur-3xl"
+          style={{
+            background: `${palette.glow}50`,
+            left: '50%', top: '50%',
+            transform: 'translate(-50%, -50%)',
+            animation: 'bg-drift-1 20s ease-in-out infinite reverse',
+            opacity: breathMesh,
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -253,7 +266,7 @@ export function TemplateShell({
       <motion.div className="absolute inset-0" style={{ rotateX: tiltY, rotateY: tiltX }}>
         {/* Background parallax layer */}
         <DepthLayer depth={3} mouseX={mouseX} mouseY={mouseY}>
-          <GradientMesh palette={palette} breathPhase={breathPhase} />
+          <GradientMesh palette={palette} breathPhase={breathPhase} intensified={centerAttract} />
           <OrbitalRings palette={palette} breathPhase={breathPhase} />
         </DepthLayer>
 
@@ -270,7 +283,7 @@ export function TemplateShell({
         {/* Foreground layer */}
         <DepthLayer depth={-1} mouseX={mouseX} mouseY={mouseY} className="z-[30]">
           <AmbientParticles
-            count={centerAttract ? 22 : 8}
+            count={centerAttract ? 40 : 20}
             palette={palette}
             attractionStrength={centerAttract ? 0.35 : particleAttraction}
             breathPhase={breathPhase}

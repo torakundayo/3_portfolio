@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProjectsData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
@@ -19,7 +19,7 @@ interface Project {
 }
 
 export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProps) {
-  const projectsData = data as any;
+  const projectsData = data as ProjectsData;
   const projects: Project[] = projectsData?.projects ?? [];
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;
@@ -112,29 +112,16 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
                 )}
 
                 <div className="flex-1 min-w-0">
-                  {/* Featured badge */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ opacity: { duration: 0.5, delay: baseDelay + 0.6, ease: [0.22, 1, 0.36, 1] as const } }}
-                    className="flex items-center gap-3 mb-1"
-                  >
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-0.5 rounded-full"
-                      style={{
-                        color: palette.glow,
-                        background: `linear-gradient(135deg, ${palette.primary}20, ${palette.secondary}15)`,
-                        border: `1px solid ${palette.primary}30`,
-                      }}
+                  {featured.year && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ opacity: { duration: 0.5, delay: baseDelay + 0.6, ease: [0.22, 1, 0.36, 1] as const } }}
+                      className="text-xs font-mono text-gray-800 mb-1 inline-block"
                     >
-                      Featured
-                    </span>
-                    {featured.year && (
-                      <span className="text-xs font-mono text-gray-800">
-                        {featured.year}
-                      </span>
-                    )}
-                  </motion.div>
+                      {featured.year}
+                    </motion.span>
+                  )}
 
                   {/* Name */}
                   <h2
@@ -220,14 +207,6 @@ export function ProjectsSpotlight({ data, commentary, visualSeed }: TemplateProp
         {/* Other projects - small pill/badge row */}
         {others.length > 0 && (
           <div className="flex-shrink-0 mt-auto">
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: baseDelay + 0.8, duration: 0.5 }}
-              className="text-[10px] uppercase tracking-[0.2em] text-gray-800 mb-2 text-center"
-            >
-              Other Projects
-            </motion.p>
             <div className="flex flex-wrap justify-center gap-2">
               {others.map((project, i) => {
                 const tagline = project.tagline?.en || project.tagline?.ja || '';

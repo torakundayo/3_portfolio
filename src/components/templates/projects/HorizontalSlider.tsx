@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProjectsData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
@@ -19,7 +19,7 @@ interface Project {
 }
 
 export function ProjectsHorizontalSlider({ data, commentary, visualSeed }: TemplateProps) {
-  const projectsData = data as any;
+  const projectsData = data as ProjectsData;
   const projects: Project[] = projectsData?.projects ?? [];
   const palette = accentPalettes[visualSeed.accentIndex];
   const baseDelay = visualSeed.animationDelay;

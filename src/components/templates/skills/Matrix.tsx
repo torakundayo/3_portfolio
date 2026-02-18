@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, SkillsData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
@@ -14,7 +14,7 @@ import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVarian
  */
 export function SkillsMatrix({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
-  const skillsData = data as any;
+  const skillsData = data as SkillsData;
   const categories = skillsData?.categories ?? [];
   const allSkills = categories.flatMap((c: any) => c.skills ?? []);
   const baseDelay = visualSeed.animationDelay;

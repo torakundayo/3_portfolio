@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { BehaviorState } from './useBehaviorObserver';
 import { templateRegistry } from '@/components/templates/registry';
 
@@ -84,6 +84,20 @@ export function useProactiveResponse(
   const category = getCategoryFromTemplateId(templateId);
   const isWelcome = templateId === 'welcome';
 
+  // Pre-compute random ambient message outside useMemo to avoid impure memo
+  const prevCatRef = useRef(category);
+  const prevStageRef = useRef(behavior.idleStage);
+  const randomAmbientRef = useRef<string | null>(null);
+
+  if (prevCatRef.current !== category || prevStageRef.current !== behavior.idleStage) {
+    prevCatRef.current = category;
+    prevStageRef.current = behavior.idleStage;
+    if (behavior.idleStage === 'suggest') {
+      const messages = AMBIENT_MESSAGES[category] ?? AMBIENT_MESSAGES.text;
+      randomAmbientRef.current = pickRandom(messages) ?? null;
+    }
+  }
+
   return useMemo(() => {
     let glowIntensity = 0;
     let particleAttraction = 0;
@@ -91,32 +105,31 @@ export function useProactiveResponse(
     let suggestedKeywords: string[] = [];
     let ambientMessage: string | null = null;
 
-    // ── Idle responses ──
+    // ── Idle responses — perceptible intensity progression ──
     if (behavior.idleStage === 'nudge') {
-      glowIntensity = 0.2;
-      particleAttraction = 0.1;
+      glowIntensity = 0.5;
+      particleAttraction = 0.3;
     }
 
     if (behavior.idleStage === 'hint') {
-      glowIntensity = 0.35;
-      particleAttraction = 0.2;
+      glowIntensity = 0.8;
+      particleAttraction = 0.5;
       suggestedKeywords = isWelcome ? WELCOME_KEYWORDS : DEFAULT_KEYWORDS;
     }
 
     if (behavior.idleStage === 'suggest') {
-      glowIntensity = 0.5;
-      particleAttraction = 0.3;
+      glowIntensity = 1.2;
+      particleAttraction = 0.7;
       suggestedKeywords = isWelcome ? WELCOME_KEYWORDS : DEFAULT_KEYWORDS;
 
-      // Pick a context-aware ambient message
-      const messages = AMBIENT_MESSAGES[category] ?? AMBIENT_MESSAGES.text;
-      ambientMessage = pickRandom(messages) ?? null;
+      // Use pre-computed random ambient message (avoids Math.random() inside useMemo)
+      ambientMessage = randomAmbientRef.current;
     }
 
     // ── Cursor speed: searching → highlight main zones ──
     if (behavior.cursorSpeed === 'searching') {
       highlightZones.push('input-field', 'main-content');
-      glowIntensity = Math.max(glowIntensity, 0.15);
+      glowIntensity = Math.max(glowIntensity, 0.6);
     }
 
     // ── Cursor dwell → highlight dwelt zone ──

@@ -3,21 +3,13 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, CareerData, CareerEntry } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
-interface CareerEntry {
-  company: { ja: string; en: string };
-  period: string;
-  role: { ja: string; en: string };
-  description: { ja: string; en: string };
-  highlights: { ja: string[]; en: string[] };
-}
-
 export function CareerJourney({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
-  const d = data as any;
+  const d = data as CareerData;
   const history: CareerEntry[] = d?.history ?? [];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;

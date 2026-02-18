@@ -235,7 +235,7 @@ export function useBehaviorObserver(options: BehaviorObserverOptions): BehaviorS
   }, [inputFocusedEmpty]);
 
   // ── Repeated-viewing detection ──
-  const [repeatedAreas] = useState(() => new Map<string, number>());
+  const [repeatedAreas, setRepeatedAreas] = useState(() => new Map<string, number>());
 
   useEffect(() => {
     // Count category occurrences
@@ -244,13 +244,14 @@ export function useBehaviorObserver(options: BehaviorObserverOptions): BehaviorS
       counts.set(cat, (counts.get(cat) ?? 0) + 1);
     }
     // Only keep categories that hit the threshold
-    repeatedAreas.clear();
+    const next = new Map<string, number>();
     for (const [cat, count] of counts) {
       if (count >= REPEAT_VIEW_THRESHOLD) {
-        repeatedAreas.set(cat, count);
+        next.set(cat, count);
       }
     }
-  }, [viewedCategories, repeatedAreas]);
+    setRepeatedAreas(next);
+  }, [viewedCategories]);
 
   return {
     idleStage,

@@ -16,16 +16,15 @@ import { LoadingOverlay } from './LoadingOverlay';
 import { TemplateShell } from './TemplateShell';
 import { AmbientWhisper } from './AmbientWhisper';
 import { ContentPillars } from './ContentPillars';
+import { MobileNav } from './MobileNav';
 import { DwellHighlight } from './DwellHighlight';
 import { StaticFallback } from '@/components/templates/StaticFallback';
+import { TemplateErrorBoundary } from './ErrorBoundary';
 import { WelcomeMinimalInput } from '@/components/templates/welcome/MinimalInput';
 import { generateVisualSeed } from '@/lib/visual-seed';
 import type { VisualSeed } from '@/lib/types';
 
-let msgCounter = 0;
-function nextId(prefix: string) {
-  return `${prefix}-${Date.now()}-${++msgCounter}`;
-}
+/* nextId: uses a ref-based counter (initialized per component instance via hook below) */
 
 /* ── Category → query mapping for pillar navigation ── */
 const CATEGORY_QUERIES: Record<string, string> = {
@@ -47,6 +46,11 @@ interface TemplateSnapshot {
 }
 
 export function Canvas() {
+  const msgCounterRef = useRef(0);
+  const nextId = useCallback((prefix: string) => {
+    return `${prefix}-${Date.now()}-${++msgCounterRef.current}`;
+  }, []);
+
   const [usedTemplates, setUsedTemplates] = useState<string[]>([]);
   const [forceStatic, setForceStatic] = useState(false);
   const [cachedLoading, setCachedLoading] = useState(false);
@@ -148,6 +152,9 @@ export function Canvas() {
     );
   }, []);
 
+  // ─── Client-side send throttle (min 1s between API calls) ───
+  const lastSendRef = useRef(0);
+
   // ─── Cache-aware send handler ───
   const handleSend = useCallback(({ text }: { text: string }) => {
     // Clear any restored snapshot when user makes a new query
@@ -202,6 +209,11 @@ export function Canvas() {
         return;
       }
     }
+
+    // Client-side throttle: skip if less than 1s since last API send
+    const now = Date.now();
+    if (now - lastSendRef.current < 1000) return;
+    lastSendRef.current = now;
 
     chat.sendMessage({ text });
   }, [chat]);
@@ -317,12 +329,14 @@ export function Canvas() {
                   onKeywordClick={handleKeywordClick}
                 />
               ) : TemplateComponent ? (
-                <TemplateComponent
-                  data={templateData}
-                  commentary={commentary}
-                  visualSeed={visualSeed}
-                  ambientMessage={ambientMessage}
-                />
+                <TemplateErrorBoundary fallback={<StaticFallback />}>
+                  <TemplateComponent
+                    data={templateData}
+                    commentary={commentary}
+                    visualSeed={visualSeed}
+                    ambientMessage={ambientMessage}
+                  />
+                </TemplateErrorBoundary>
               ) : null}
 
               {!isWelcome && <AmbientWhisper message={ambientMessage} />}
@@ -337,7 +351,7 @@ export function Canvas() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8 }}
                     style={{
-                      boxShadow: 'inset 0 0 60px rgba(139,92,246,0.04), inset 0 0 20px rgba(6,182,212,0.03)',
+                      boxShadow: 'inset 0 0 80px rgba(139,92,246,0.10), inset 0 0 30px rgba(6,182,212,0.08)',
                     }}
                   />
                 )}
@@ -356,6 +370,18 @@ export function Canvas() {
             onNavigate={handlePillarNavigate}
             accentIndex={visualSeed.accentIndex}
             isSearching={isSearching}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Mobile navigation — horizontal dots at top */}
+      <AnimatePresence>
+        {!isWelcome && !showStaticFallback && !isLoading && (
+          <MobileNav
+            activeCategory={activeCategory}
+            visitedCategories={visitedCategoryList}
+            onNavigate={handlePillarNavigate}
+            accentIndex={visualSeed.accentIndex}
           />
         )}
       </AnimatePresence>

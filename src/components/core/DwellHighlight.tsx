@@ -49,21 +49,22 @@ export function DwellHighlight({ dwellTarget }: DwellHighlightProps) {
         <motion.div
           key={dwellTarget}
           className="fixed pointer-events-none z-40 rounded-2xl"
-          initial={{ opacity: 0, scale: 1 }}
-          animate={{ opacity: 1, scale: 1.03 }}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1.05 }}
           exit={{ opacity: 0, scale: 1 }}
           transition={{
-            opacity: { duration: 0.6 },
-            scale: { type: 'spring', stiffness: 80, damping: 20 },
+            opacity: { duration: 0.5 },
+            scale: { type: 'spring', stiffness: 60, damping: 18 },
           }}
           style={{
-            left: rect.left - 12,
-            top: rect.top - 8,
-            width: rect.width + 24,
-            height: rect.height + 16,
+            left: rect.left - 16,
+            top: rect.top - 12,
+            width: rect.width + 32,
+            height: rect.height + 24,
             boxShadow:
-              '0 0 30px rgba(139,92,246,0.06), 0 0 12px rgba(6,182,212,0.04)',
-            border: '1px solid rgba(139,92,246,0.08)',
+              '0 0 60px rgba(139,92,246,0.30), 0 0 24px rgba(6,182,212,0.22), 0 0 8px rgba(139,92,246,0.15)',
+            border: '1.5px solid rgba(139,92,246,0.35)',
+            background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.04), transparent 70%)',
           }}
         />
       )}

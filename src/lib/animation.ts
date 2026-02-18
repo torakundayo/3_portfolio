@@ -24,13 +24,42 @@ export function breatheStyle(index: number): CSSProperties {
   };
 }
 
-/* ═══ ai-reveal style generator ═══ */
+/* ═══ ai-reveal style generator — text reveals left-to-right via clipPath ═══ */
 export function revealStyle(index: number): CSSProperties {
   return {
-    animation: `ai-reveal 0.5s ease-out both`,
-    animationDelay: `${index * 0.1}s`,
+    animation: `ai-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both`,
+    animationDelay: `${index * 0.15}s`,
   };
 }
+
+/* ═══ Focus-in: card/node elements emerge from blur + scale ═══ */
+export const FOCUS_IN_VARIANTS = {
+  hidden: { opacity: 0, scale: 0.85, filter: 'blur(8px)' },
+  visible: (i: number) => ({
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: {
+      duration: 0.7,
+      delay: i * 0.12,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  }),
+};
+
+/* ═══ Text reveal: clipPath wipe (no translateY) ═══ */
+export const TEXT_REVEAL_VARIANTS = {
+  hidden: { opacity: 0, clipPath: 'inset(0 100% 0 0)' },
+  visible: (i: number) => ({
+    opacity: 1,
+    clipPath: 'inset(0 0% 0 0)',
+    transition: {
+      duration: 0.8,
+      delay: i * 0.12,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  }),
+};
 
 /* ═══ Card float — structural liveliness for card containers ═══ */
 export function cardFloatStyle(index: number): CSSProperties {
@@ -60,7 +89,7 @@ export function getLayoutVariant(layoutVariant: number): LayoutVariant {
 /* ═══ Seed-based stagger for entry animations (T-022) ═══ */
 export function seededStagger(seed: number) {
   const r = seededRandom(Math.round(seed * 1000));
-  const stagger = 0.10 + r() * 0.10; // 0.10–0.20s
+  const stagger = 0.12 + r() * 0.12; // 0.12–0.24s
   const reverse = r() > 0.5;
   return { stagger, reverse };
 }

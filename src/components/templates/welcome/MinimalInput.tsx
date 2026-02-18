@@ -61,7 +61,8 @@ function DriftingKeyword({
   );
 
   const smoothProx = useSpring(proximity, { stiffness: 80, damping: 20 });
-  const proxScale = useTransform(smoothProx, [0, 0.5, 1], [1, 1.05, 1.12]);
+  const proxScale = useTransform(smoothProx, [0, 0.5, 1], [1, 1.08, 1.18]);
+  const proxGlow = useTransform(smoothProx, [0, 0.5, 1], [0.4, 0.7, 1]);
 
   return (
     <motion.div
@@ -70,21 +71,26 @@ function DriftingKeyword({
     >
       <motion.button
         onClick={onClick}
-        className="pointer-events-auto select-none cursor-pointer
-                   text-gray-700 text-base font-medium z-20 relative whitespace-nowrap
+        className="group pointer-events-auto select-none cursor-pointer
+                   text-gray-800 text-xl md:text-2xl font-semibold z-20 relative whitespace-nowrap
                    hover:text-gray-900 transition-colors duration-200"
         style={{
           scale: proxScale,
+          opacity: proxGlow,
         }}
-        initial={{ opacity: 0 }}
+        initial={{ opacity: 0, scale: 0.5, filter: 'blur(12px)' }}
         animate={{
           opacity: 1,
+          scale: 1,
+          filter: 'blur(0px)',
           x: `calc(${path.baseX}vmin - 50%)`,
           y: `calc(${path.baseY}vmin - 50%)`,
         }}
-        exit={{ opacity: 0, transition: { duration: 0.3 } }}
+        exit={{ opacity: 0, scale: 0.8, filter: 'blur(6px)', transition: { duration: 0.4 } }}
         transition={{
           opacity: { duration: 0.8, delay: path.entryDelay },
+          scale: { type: 'spring', stiffness: 50, damping: 18, delay: path.entryDelay },
+          filter: { duration: 0.8, delay: path.entryDelay },
           x: { type: 'spring', stiffness: 30, damping: 22, delay: path.entryDelay },
           y: { type: 'spring', stiffness: 30, damping: 22, delay: path.entryDelay },
         }}
@@ -93,13 +99,19 @@ function DriftingKeyword({
         <span
           className="absolute inset-0 -z-10 rounded-full blur-xl pointer-events-none"
           style={{
-            background: `radial-gradient(circle, ${glowColor}25, transparent 70%)`,
-            transform: 'scale(3)',
+            background: `radial-gradient(circle, ${glowColor}80, ${glowColor}30 50%, transparent 75%)`,
+            transform: 'scale(4)',
             animation: `ai-breathe ${4 + breathIndex * 0.7}s ease-in-out infinite`,
             animationDelay: `${breathIndex * 0.8}s`,
           }}
         />
         {kw.label}
+        {/* Hover underline indicator */}
+        <span
+          className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full
+                     opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: `linear-gradient(90deg, transparent, ${glowColor}, transparent)` }}
+        />
       </motion.button>
     </motion.div>
   );

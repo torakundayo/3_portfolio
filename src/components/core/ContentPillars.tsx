@@ -44,7 +44,7 @@ export function ContentPillars({
       {CATEGORIES.map((cat, i) => {
         const isActive = activeCategory === cat.id;
         const isVisited = visitedCategories.includes(cat.id);
-        const dotSize = isActive ? 22 : isSearching ? 20 : 14;
+        const dotSize = isActive ? 32 : isSearching ? 28 : 20;
 
         // Connector between node[i-1] and node[i]:
         // palette-colored if either adjacent node is active
@@ -61,14 +61,14 @@ export function ContentPillars({
               >
                 <motion.div
                   style={{
-                    width: 1.5,
+                    width: 2,
                     height: '100%',
                     borderRadius: 1,
                     backgroundColor: connectorNearActive
                       ? palette.primary
                       : 'rgb(209 213 219)',
                   }}
-                  animate={{ opacity: [0.2, 0.45, 0.2] }}
+                  animate={{ opacity: [0.4, 0.8, 0.4] }}
                   transition={{
                     duration: 4,
                     repeat: Infinity,
@@ -102,7 +102,7 @@ export function ContentPillars({
                 animate={{
                   width: dotSize,
                   height: dotSize,
-                  scale: [1, 1.06, 1],
+                  scale: [1, 1.15, 1],
                 }}
                 transition={{
                   width: { type: 'spring', stiffness: 300, damping: 25 },
@@ -126,7 +126,7 @@ export function ContentPillars({
                       ? `1.5px solid ${palette.primary}40`
                       : '2px solid rgb(156 163 175)',
                   boxShadow: isActive
-                    ? `0 0 14px 4px ${palette.primary}45`
+                    ? `0 0 24px 8px ${palette.primary}55`
                     : 'none',
                 }}
               />

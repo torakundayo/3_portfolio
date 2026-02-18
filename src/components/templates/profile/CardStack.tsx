@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ProfileData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps) {
-  const profile = data as any;
+  const profile = data as ProfileData;
   const palette = accentPalettes[visualSeed.accentIndex % accentPalettes.length];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
@@ -24,14 +24,6 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
       offsetY: -10,
       content: (
         <>
-          <div className="mb-3">
-            <span
-              className="text-xs uppercase tracking-[0.25em] font-medium"
-              style={{ color: palette.primary }}
-            >
-              Profile
-            </span>
-          </div>
           <h2
             className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight"
             style={{ transform: 'translateZ(40px)', ...breatheStyle(0) }}
@@ -67,14 +59,6 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
             offsetY: 5,
             content: (
               <>
-                <div className="mb-3">
-                  <span
-                    className="text-xs uppercase tracking-[0.25em] font-medium"
-                    style={{ color: palette.secondary }}
-                  >
-                    Introduction
-                  </span>
-                </div>
                 <p
                   className="text-sm text-gray-800 leading-relaxed font-normal line-clamp-4"
                   style={{ ...revealStyle(0), transform: 'translateZ(15px)' }}
@@ -98,14 +82,6 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
               <>
                 {(profile?.background?.ja || profile?.background?.en) && (
                   <>
-                    <div className="mb-3">
-                      <span
-                        className="text-xs uppercase tracking-[0.25em] font-medium"
-                        style={{ color: palette.glow }}
-                      >
-                        Background
-                      </span>
-                    </div>
                     <p
                       className="text-sm text-gray-800 leading-relaxed font-normal line-clamp-3"
                       style={{ ...revealStyle(1), transform: 'translateZ(15px)' }}
@@ -115,7 +91,7 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                   </>
                 )}
                 {profile?.links && (
-                  <div className={`flex gap-3 ${profile?.background?.ja || profile?.background?.en ? 'mt-4 pt-3 border-t border-gray-200' : ''}`}>
+                  <div className={`flex gap-3 ${profile?.background?.ja || profile?.background?.en ? 'mt-4' : ''}`}>
                     {profile.links.github && (
                       <a
                         href={profile.links.github}
@@ -251,14 +227,6 @@ export function ProfileCardStack({ data, commentary, visualSeed }: TemplateProps
                     background: `linear-gradient(90deg, transparent, ${palette.secondary}40, transparent)`,
                   }}
                 />
-                <div className="mb-3">
-                  <span
-                    className="text-xs uppercase tracking-[0.25em] font-medium"
-                    style={{ color: palette.secondary }}
-                  >
-                    AI Commentary
-                  </span>
-                </div>
                 <div
                   className="prose prose-sm prose-p:text-gray-800 max-w-none line-clamp-4"
                   style={{ ...revealStyle(2), transform: 'translateZ(15px)' }}

@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Mail, Github, Linkedin, ExternalLink } from 'lucide-react';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, ContactData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
 export function ContactMinimalLinks({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
-  const d = data as any;
+  const d = data as ContactData;
   const baseDelay = visualSeed.animationDelay;
   const { stagger } = seededStagger(visualSeed.colorOffset);
 

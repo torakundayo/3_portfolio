@@ -14,6 +14,7 @@ import { ProjectsGridGallery } from './projects/GridGallery';
 import { ProjectsSpotlight } from './projects/Spotlight';
 import { ProjectsTimeline } from './projects/Timeline';
 import { ProjectsShowcaseStack } from './projects/ShowcaseStack';
+import { ProjectsSpatialOrbit } from './projects/SpatialOrbit';
 import { SkillsBarChart } from './skills/BarChart';
 import { SkillsRadarChart } from './skills/RadarChart';
 import { SkillsTagCloud } from './skills/TagCloud';
@@ -24,16 +25,20 @@ import { CareerVerticalTimeline } from './career/VerticalTimeline';
 import { CareerHorizontalTimeline } from './career/HorizontalTimeline';
 import { CareerCompanyCards } from './career/CompanyCards';
 import { CareerJourney } from './career/Journey';
+import { CareerSpatialJourney } from './career/SpatialJourney';
 import { ValuesQuoteCard } from './values/QuoteCard';
 import { ValuesManifesto } from './values/Manifesto';
 import { ValuesStoryFormat } from './values/StoryFormat';
+import { ValuesSpatialBeliefs } from './values/SpatialBeliefs';
 import { ContactCard } from './contact/ContactCard';
 import { ContactMinimalLinks } from './contact/MinimalLinks';
 import { ContactFullscreenCta } from './contact/FullscreenCta';
+import { ContactSpatialContact } from './contact/SpatialContact';
 import { TextMagazineLayout } from './text/MagazineLayout';
 import { TextLetterFormat } from './text/LetterFormat';
 import { TextHighlightBox } from './text/HighlightBox';
 import { TextQaFormat } from './text/QAFormat';
+import { TextSpatialProse } from './text/SpatialProse';
 
 interface TemplateEntry {
   component: ComponentType<TemplateProps>;
@@ -94,6 +99,10 @@ export const templateRegistry: Record<string, TemplateEntry> = {
     component: ProjectsShowcaseStack,
     meta: { id: 'projects-showcase-stack', category: 'projects', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
   },
+  'projects-spatial-orbit': {
+    component: ProjectsSpatialOrbit,
+    meta: { id: 'projects-spatial-orbit', category: 'projects', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
+  },
 
   // ─── Skills (6) — high density ───
   'skills-bar-chart': {
@@ -138,6 +147,10 @@ export const templateRegistry: Record<string, TemplateEntry> = {
     component: CareerJourney,
     meta: { id: 'career-journey', category: 'career', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
   },
+  'career-spatial-journey': {
+    component: CareerSpatialJourney,
+    meta: { id: 'career-spatial-journey', category: 'career', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
+  },
 
   // ─── Values (3) — low density ───
   'values-quote-card': {
@@ -152,6 +165,10 @@ export const templateRegistry: Record<string, TemplateEntry> = {
     component: ValuesStoryFormat,
     meta: { id: 'values-story-format', category: 'values', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'low' },
   },
+  'values-spatial-beliefs': {
+    component: ValuesSpatialBeliefs,
+    meta: { id: 'values-spatial-beliefs', category: 'values', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'low' },
+  },
 
   // ─── Contact (3) — low density ───
   'contact-card': {
@@ -165,6 +182,10 @@ export const templateRegistry: Record<string, TemplateEntry> = {
   'contact-fullscreen-cta': {
     component: ContactFullscreenCta,
     meta: { id: 'contact-fullscreen-cta', category: 'contact', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'low' },
+  },
+  'contact-spatial-contact': {
+    component: ContactSpatialContact,
+    meta: { id: 'contact-spatial-contact', category: 'contact', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'low' },
   },
 
   // ─── Text (5) — medium density ───
@@ -187,5 +208,9 @@ export const templateRegistry: Record<string, TemplateEntry> = {
   'text-qa-format': {
     component: TextQaFormat,
     meta: { id: 'text-qa-format', category: 'text', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
+  },
+  'text-spatial-prose': {
+    component: TextSpatialProse,
+    meta: { id: 'text-spatial-prose', category: 'text', inputPosition: 'bottom-center', inputStyle: 'ghost', transition: 'clipExpand', density: 'medium' },
   },
 };

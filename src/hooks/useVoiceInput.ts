@@ -56,8 +56,10 @@ interface SpeechRecognitionInstance extends EventTarget {
 
 function getSpeechRecognition(): (new () => SpeechRecognitionInstance) | null {
   if (typeof window === 'undefined') return null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRecognitionInstance;
+    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+  };
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 

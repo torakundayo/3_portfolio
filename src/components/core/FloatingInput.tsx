@@ -162,10 +162,10 @@ export function FloatingInput({
           transition={{ duration: 2, delay: 0.5 }}
         >
           <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[200px] rounded-full blur-3xl"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] rounded-full blur-3xl"
             style={{
-              background: 'radial-gradient(ellipse, rgba(139,92,246,0.08) 0%, rgba(6,182,212,0.04) 50%, transparent 70%)',
-              animation: 'ai-breathe 6s ease-in-out infinite',
+              background: 'radial-gradient(ellipse, rgba(139,92,246,0.45) 0%, rgba(6,182,212,0.28) 50%, transparent 70%)',
+              animation: 'ai-breathe 4s ease-in-out infinite',
             }}
           />
         </motion.div>
@@ -178,21 +178,34 @@ export function FloatingInput({
               className="absolute -inset-[1px] rounded-2xl overflow-hidden pointer-events-none"
               style={{ opacity: glowOpacity }}
               animate={!isFocused && !isTyping ? {
-                scale: isCenter ? [1, 1.008, 1] : [1, 1.003, 1],
+                scale: isCenter ? [1, 1.02, 1] : [1, 1.008, 1],
               } : { scale: 1 }}
-              transition={{ duration: isCenter ? 4 : 3, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: isCenter ? 3.5 : 3, repeat: Infinity, ease: 'easeInOut' }}
             >
               <div
                 className="absolute inset-0"
                 style={{
                   background: isListening
                     ? 'conic-gradient(from var(--glow-angle), rgba(239,68,68,0.35), rgba(251,146,60,0.25), rgba(239,68,68,0.1), rgba(251,146,60,0.25), rgba(239,68,68,0.35))'
-                    : 'conic-gradient(from var(--glow-angle), rgba(139,92,246,0.25), rgba(6,182,212,0.25), rgba(139,92,246,0.06), rgba(6,182,212,0.25), rgba(139,92,246,0.25))',
+                    : 'conic-gradient(from var(--glow-angle), rgba(139,92,246,0.40), rgba(6,182,212,0.35), rgba(139,92,246,0.12), rgba(6,182,212,0.35), rgba(139,92,246,0.40))',
                   animation: `glow-rotate ${isListening ? 1.2 : glowDuration}s linear infinite`,
                 }}
               />
               <div className="absolute inset-[1px] rounded-[15px] bg-white/95 backdrop-blur-xl" />
             </motion.div>
+          )}
+
+          {/* Ghost style: always-visible breathing glow underline */}
+          {isGhost && !isFocused && !isTyping && (
+            <motion.div
+              className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full pointer-events-none z-10"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.8), rgba(6,182,212,0.7), rgba(139,92,246,0.8), transparent)',
+                boxShadow: '0 0 12px rgba(139,92,246,0.3), 0 0 4px rgba(6,182,212,0.2)',
+              }}
+              animate={{ opacity: [0.6, 1, 0.6], scaleX: [0.92, 1, 0.92] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
           )}
 
           <form
@@ -203,7 +216,7 @@ export function FloatingInput({
                 ? `bg-transparent text-gray-900 placeholder:text-gray-400 ${
                     isFocused || isTyping
                       ? 'bg-white/60 backdrop-blur-sm rounded-xl border border-gray-300/50'
-                      : 'border-b border-gray-400/50'
+                      : 'border-b border-gray-400/30'
                   }`
                 : isMinimal
                 ? `bg-white rounded-xl border border-gray-200 ${isFocused ? 'border-gray-400' : ''}`
@@ -224,7 +237,7 @@ export function FloatingInput({
                 // Delay blur to allow suggestion click
                 setTimeout(() => setIsFocused(false), 150);
               }}
-              placeholder={isListening ? '聞いています...' : 'AIに質問する...'}
+              placeholder={isListening ? '...' : isCenter ? 'skills, career, projects...' : '...'}
               disabled={inputDisabled}
               aria-label="AIに質問する"
               className={`flex-1 bg-transparent outline-none text-sm ${
@@ -333,15 +346,15 @@ export function FloatingInput({
                           top: y,
                           transform: 'translate(-50%, -50%)',
                         }}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.7, filter: 'blur(6px)' }}
+                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, scale: 0.7, filter: 'blur(6px)' }}
                         transition={{
-                          delay: i * 0.06,
-                          duration: 0.5,
+                          delay: i * 0.08,
+                          duration: 0.6,
                           ease: [0.22, 1, 0.36, 1],
                         }}
-                        whileHover={{ scale: 1.12 }}
+                        whileHover={{ scale: 1.15 }}
                       >
                         {kw}
                       </motion.button>

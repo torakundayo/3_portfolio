@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { TemplateProps } from '@/lib/types';
+import type { TemplateProps, SkillsData } from '@/lib/types';
 import { accentPalettes } from '@/lib/visual-seed';
 import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius, getLayoutVariant, seededStagger } from '@/lib/animation';
 
@@ -13,7 +13,7 @@ import { SPRING_ENTER, breatheStyle, revealStyle, cardFloatStyle, organicRadius,
  */
 export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplateProps) {
   const palette = accentPalettes[visualSeed.accentIndex];
-  const skillsData = data as any;
+  const skillsData = data as SkillsData;
   const categories = skillsData?.categories ?? [];
   const baseDelay = visualSeed.animationDelay;
   const mirror = visualSeed.mirrorLayout;
@@ -59,29 +59,6 @@ export function SkillsCategoryCards({ data, commentary, visualSeed }: TemplatePr
           transition={{ ...SPRING_ENTER, delay: baseDelay }}
           className={`mb-6 ${mirror ? 'text-right' : 'text-left'}`}
         >
-          <h2
-            className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
-            style={{ ...breatheStyle(0), transform: 'translateZ(40px)' }}
-          >
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(${gradientAngle}deg, ${palette.primary}, ${palette.glow})`,
-              }}
-            >
-              Skills & Expertise
-            </span>
-          </h2>
-          <motion.div
-            className="mt-2 h-0.5 w-24"
-            style={{
-              background: `linear-gradient(90deg, ${palette.primary}, ${palette.glow}00)`,
-              marginLeft: mirror ? 'auto' : 0,
-            }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.8, delay: baseDelay + 0.2 }}
-          />
         </motion.div>
 
         {/* Card Grid - compact, more columns */}
